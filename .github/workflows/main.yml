@@ -18,4 +18,4 @@ jobs:
         aws-region: us-east-2
     
     - name: Sync to S3
-      run: aws s3 sync . s3://chess.kengraf.com --exclude ".git*" --exclude "tests/*"
+      run: aws s3 sync . s3://chess-first10.kengraf.com --exclude ".git*" --exclude "tests/*" "py/*" "data/*"
