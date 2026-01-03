@@ -9,7 +9,7 @@ with open('nodes.data', 'r') as f:
 			# Each line(node) is a dictionary string
 			nodes.append(ast.literal_eval(line))
 
-# Only the 10 moves (20 stesp) are stored
+# Only the 10 moves (20 steps) are stored
 # User controls
 color2play = "white" # white|black|random
 selector = "first" # random|weighted|first|last

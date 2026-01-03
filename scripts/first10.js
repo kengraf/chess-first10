@@ -1,0 +1,62 @@
+import * as GameData from './gameData.js';
+import * as Board from './board.js'
+import * as Sidebar from './sidebar.js'
+
+// ------------ global variables ----------------
+
+// Globals
+export let _globals = {};
+
+_globals.gameOptions = { 
+			"worb": ["w", "r", "b"],
+			"theme": ["classic", "modern" ],
+			"eco": ["tbd"],
+			"url":"data/first10.pgn"};
+_globals.boardTheme = _globals.gameOptions.theme[0];
+_globals.pgnURL = _globals.gameOptions.url[0];
+
+
+/*
+// ---------- Code to run the game -------------
+
+*/
+
+function init() {
+	if( ! readParameters() )
+		// Reroute to error page
+		window.location.href = '/error.html';
+		
+	// Generate the HTML board and pieces
+	Board.initializeBoard();
+
+	// Generate data structures
+	GameData.processNodesURL('/data/first10.nodes');
+
+	// Generate sidebar and UI elements
+//	const sidebar = new Sidebar('container-sb');
+}
+
+
+function readParameters() {
+	const queryString = window.location.search;
+	if( queryString == "" )
+		return true;  // Using all defaults
+		
+	const urlParams = new URLSearchParams(queryString);
+	
+	let s = "";
+	if( s = urlParams.get('theme')) {
+		if (_globals.gameOptions.theme.includes(s)) {
+			_globals.boardTheme = s;
+		}
+	}
+
+	if( s = urlParams.get('url') ) {
+		_globals.pgnURL = s;
+	};
+
+	return true;
+}
+
+// Kick off execution
+init();

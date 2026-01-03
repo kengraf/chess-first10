@@ -1,42 +1,55 @@
-/* jshint esversion: 8 */
-// ------------------------- global variables -------------------
+import { _globals } from './first10.js';
+
+// JSON Object for _game
+let _game = {
+    startingPosition: "",  //FEN format
+    castling: "kqKQ",
+    enPassant: "-",
+    moveCount: 0,
+    steps: [],  // _move objects
+    WorB: "w",
+};
+
+export function playMove(notation) {
+    if( notation == null ) return;
+
+    _move.notation = notation;
+    _move.WorB = _game.WorB;
+      // Handle the castling special case
+    if ("0oO".includes(_move.notation[0])) {
+        moveCastle(_move.notation);
+    } else {
+        
+        _move.startSquare = {};
+        _move.endSquare = {};
+        if( ! parseMove(_move.notation) ) {
+            console.log( `Bad move notation: ${_move.notation}` );
+            return;
+        }
+        if( identifyPiece() ) {
+            executeMove(_move);
+        }
+    }
+    // TBD play sound here or at end of executemove?
+
+/* TBD
+    _move.delay = 2;
+    if( _move.delay ) 
+        await sleep( _move.delay * 1000 );
+*/
+    _game.WorB = _move.WorB = (_move.WorB == 'w') ? "b" : "w";
+    return;
+}
+
 
 // To make the asscii string notation to matrix work easier
 const _fileToX = { a:0, b:1, c:2, d:3, e:4, f:5, g:6, h:7 };  // _fileToX["c"] = 2
 const _rankToY = { 1:0, 2:1, 3:2, 4:3, 5:4, 6:5, 7:6, 8:7 };  // _rankToY[5] = 4
 const _boardFiles ='abcdefgh';
 const _boardRanks = '87654321';  // <div> position 0 is board rank 8
-let _currentScore = 0;
 let _positiveMove = false;
-let _goodMoves = [];
 let _squareSize = 60;
-let _gameMode = "";
-let _gameTheme = "";
-let _loadURL = "";
-let _gameSet = {};
 
-// JSON Object for _game
-let _game = {
-    source: "", // Where game was published
-    title: "",
-    subtitle: "",
-    annotator: "",  // Author's name
-    startingPosition: "",  //FEN format
-    summary: "",
-    opening: "",  // i.e. CARO-KANN DEFENSE (B13)"
-    white: "", // name
-    black: "", // name
-    site: "", 
-    moveCount: 0,
-    steps: [],  // _move objects
-    iStep: 0, // Index of current step
-};
-
-// Current step (set of moves)
-let _step = {
-    moves: [],
-    iMove: 0,  //Needed for back/forward button context
-};
 
 // Current half move
 let _move = {
@@ -50,14 +63,14 @@ let _move = {
     endSquare: {}, // location after, except enPassant and castling
     pieceType: "", // one of "prbnqk"
     disambiguate: "",  // Only used when 2 pieces can move to the end square
-    promotionPiece: "", // one of "rbnq"
+    promotionPiece: "", // one of "RNBQ"
     captureMove: false, // True only when move is a capture
     checkResult: false,
     mateResult: false,
     enPassant: "=",
 };
 
-// ------------------ helper/utility functions ----------------
+// ------------- helper/utility functions --------------
 
 function index2alpha( file, rank ) {
     return( "abcdefgh"[file] + "12345678"[rank] );
@@ -86,17 +99,19 @@ function nodeToSquareType(node) {
     sq.alpha = alpha;
     sq.file = _fileToX[alpha[0]];
     sq.rank = _rankToY[alpha[1]];
+    if( isNaN(sq.rank))
+        return null;
     return sq;
 }
 
 
-// ----------------- browser interactions ---------------------
+// ------------ browser interactions ----------------
 let _activePiece = null; // type of _move not node
 
 function dropEvent(e) {
     if( _activePiece == null ) {
         _audioResult = _audioIllegal;
-        return false;
+        return null;
     }
     
     if( validLandingSquare(e.currentTarget) ) {
@@ -104,7 +119,7 @@ function dropEvent(e) {
     } 
     resetClickDrag();
     _audioResult = _audioIllegal;
-    return false;
+    return null;
 }
 
 function clickEvent(e) {
@@ -116,7 +131,7 @@ function clickEvent(e) {
         } else {
             resetClickDrag();
             _audioResult = _audioIllegal;
-            return false;
+            return null;
         }
     } else {
         // set the startSquare
@@ -127,12 +142,12 @@ function clickEvent(e) {
                highlightSquare( e.currentTarget, "click-overlay" );
                 _moveTos = [];
                showPossibles( _activePiece );
-               return false;
+               return null;
             }
         }
     }
     _audioResult = _audioIllegal;
-    return false;
+    return null;
 }
 
 function isSquareOccupied(node, className = "piece" ) {
@@ -190,30 +205,10 @@ window.addEventListener('resize', () => {
     resizeBoard(window.innerWidth, window.innerHeight);
 });
 
-document.getElementById('hintBtn').addEventListener('click', () => {
-    playHint(); // Highlight piece to move
-});
 
-document.getElementById('forwardBtn').addEventListener('click', () => {
-    playStep(); // Run the next set to moves
-});
 
-function resizeBoard(w,h) {
-    // We want the largest square board without squeezing the sidebar
-    console.log(`Viewport width: ${w}px, height: ${h}px`);
-    w = document.documentElement.clientWidth;
-        h = document.documentElement.clientHeight;
 
-    let r = document.querySelector(':root');
-    let side = document.getElementById('sidebar').offsetWidth;
-    _squareSize = Math.floor(Math.min(w-side,h)/8);
-
-    var width = (_squareSize*8); 
-    r.style.setProperty('--board-size', `${width}px`);
-    r.style.setProperty('--square-size', `${_squareSize}px`);
-}
-
-// ------------------ available spaces of a piece ------------------
+// ---------- available spaces of a piece --------------
 let _moveTos = [];  // alpha of piece i.e. "a8"
     const availFunctions = [
         (p) => availPawnSquares(p),
@@ -226,8 +221,10 @@ let _moveTos = [];  // alpha of piece i.e. "a8"
 
 function probeOppOnSquare( x, y, ownColor ) {
     // Bounds check
-    if( x < 0 || x > 7 ) return false;
-    if( y < 0 || y > 7 ) return false;
+    if( isNaN(x) || isNaN(y) )
+        return false;
+    if(  x < 0 || x > 7 ) return false;
+    if(  y < 0 || y > 7 ) return false;
 
     let alpha = index2alpha(x,y);
     const square = document.getElementById(alpha);
@@ -245,6 +242,8 @@ function probeOppOnSquare( x, y, ownColor ) {
 
 function probeSquare( x, y, ownColor ) {
     // Bounds check
+    if( isNaN(x) || isNaN(y) )
+        return false;
     if( x < 0 || x > 7 ) return false;
     if( y < 0 || y > 7 ) return false;
 
@@ -451,7 +450,7 @@ return false; // DEBUG and FIX
     return false; 
 }
 
-// ------------------ piece location and placement ------------------
+// ------------ piece location and placement -----------
 
 // ------------------ Move Functions --------------------
 
@@ -588,7 +587,7 @@ function parseMove(notation) {
         notation = notation.slice(0, -1);
         lastC = notation.charAt(notation.length - 1);
     }
-    if( "RNBG".includes(lastC) ) {
+    if( "RNBQ".includes(lastC) ) {
         // Promotion
         _move.promotionPiece = lastC;
         notation = notation.slice(0, -1);
@@ -646,8 +645,52 @@ function animateElement(element, keyframes, options) {
     });
 }
 
+export function resetPieces( fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w kqKQ - 0 0" ) {
+    // FEN notation for initial board setup
+    const parts = fen.split(" ");
+    _game.initalBoard = parts[0];
+    _move.WorB = parts[1];
+    _game.castling = parts[2];
+    _game.enPassant = parts[3];
+    _game.halfMoves = parts[4];
+    _game.fullMoves = parts[5];
+    _game.fen = fen
 
-async function executeMove(move) {  // Update the UI
+    const ranks = parts[0].split("/");
+    if (ranks.length != 8) {
+        console.log(`Invalid FEN:${fen}`);
+        return;
+        }
+
+    // Drop pieces from any previous game
+    clearBoard();
+
+    // Go thru the ranks 8 to 1
+    for (let rank = 0; rank < ranks.length; rank++) {
+        let fileIndex = 0;
+        let boardRank = _boardRanks[rank];
+        for (const p of ranks[rank]) {
+            if ('prnbqkPRNBQK'.includes(p)) {
+                // FEN syntaz white pieces are uppercase
+                let lowPiece = p.toLowerCase();
+                let piece = "";
+                if (p == lowPiece) {
+                    piece = "b" + p;
+                }
+                else {
+                    piece = "w" + lowPiece;
+                }
+                pieceAdd(piece, `${_boardFiles[fileIndex]}${boardRank}` );
+                fileIndex++;
+            } else if(_boardRanks.includes(p)) {
+                // skips empty squares
+                fileIndex += parseInt(p, 10);
+            }
+        }
+    }
+}
+
+function executeMove(move) {  // Update the UI
     let floatAnimation = true;
     let imgSquare = document.getElementById(move.startSquare.alpha);
     const floatImage = imgSquare.querySelectorAll("[data-group]")[0];
@@ -668,6 +711,7 @@ async function executeMove(move) {  // Update the UI
         ];
     const options = { duration: 1000, iterations: 1, fill: "forwards" };
 
+ /*
     // Create and play animation
     animateElement(floatImage, keyframes, options )
         .then(() => {
@@ -676,7 +720,7 @@ async function executeMove(move) {  // Update the UI
 
     while( floatAnimation )
         await sleep( 50 );
-
+*/
     // Just the moved piece on square
     floatImage.remove();
     pieceDelete(move.endSquare.alpha);
@@ -711,9 +755,10 @@ function pieceDelete(square) {
 function pieceImageAdd( piece, square) {
     let container = document.getElementById(square);
     const img = document.createElement("img");
+    let theme = _globals.boardTheme;
     img.className = "piece";
     img.setAttribute("data-group", piece);
-    img.setAttribute("src", `/images/${_gameTheme}/${piece}.png` );
+    img.setAttribute("src", `/images/${theme}/${piece}.png` );
     container.appendChild(img);
     return img;
 }
@@ -750,9 +795,8 @@ function pieceAdd( piece, square) {
     }
 }
 
-
-// ------------------------- game control functions -------------------
-async function clearBoard() {
+// ------------- game control functions ----------------
+function clearBoard() {
     for( let f=0; f<8; f++ ) {
         for( let r=0; r<8; r++ ) {
             pieceDelete(index2alpha(f,r));
@@ -760,49 +804,21 @@ async function clearBoard() {
     }
 }    
 
-function setupGame( fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w kqKQ - 0 0" ) {
-    // FEN notation for initial board setup
-    const parts = fen.split(" ");
-    _game.initalBoard = parts[0];
-    _move.WorB = parts[1];
-    _game.castling = parts[2];
-    _game.enPassant = parts[3];
-    _game.halfMoves = parts[4];
-    _game.fullMoves = parts[5];
+function resizeBoard(w,h) {
+    // We want the largest square board without squeezing the sidebar
+    console.log(`Viewport width: ${w}px, height: ${h}px`);
+    w = document.documentElement.clientWidth;
+        h = document.documentElement.clientHeight;
 
-    const ranks = parts[0].split("/");
-    if (ranks.length != 8) {
-        console.log(`Invalid FEN:${fen}`);
-        return;
-        }
+    let r = document.querySelector(':root');
+    let side = document.getElementById('sb-container').offsetWidth;
+    _squareSize = Math.floor(Math.min(w-side,h)/8);
 
-    // Drop pieces from any previous game
-    clearBoard();
-
-    // Go thru the ranks 8 to 1
-    for (let rank = 0; rank < ranks.length; rank++) {
-        let fileIndex = 0;
-        let boardRank = _boardRanks[rank];
-        for (const p of ranks[rank]) {
-            if ('prnbqkPRNBQK'.includes(p)) {
-                // FEN syntaz white pieces are uppercase
-                let lowPiece = p.toLowerCase();
-                let piece = "";
-                if (p == lowPiece) {
-                    piece = "b" + p;
-                }
-                else {
-                    piece = "w" + lowPiece;
-                }
-                pieceAdd(piece, `${_boardFiles[fileIndex]}${boardRank}` );
-                fileIndex++;
-            } else if(_boardRanks.includes(p)) {
-                // skips empty squares
-                fileIndex += parseInt(p, 10);
-            }
-        }
-    }
+    var width = (_squareSize*8); 
+    r.style.setProperty('--board-size', `${width}px`);
+    r.style.setProperty('--square-size', `${_squareSize}px`);
 }
+
 
 // Add audio files, use _audio*.play();
 const _audioMove = new Audio("/audio/move.mp3");
@@ -812,20 +828,22 @@ const _audioIllegal = new Audio("/audio/illegal.mp3");
 const _audioCapture = new Audio("/audio/capture.mp3");
 let _audioResult = null;
 
-function defineBoard() {
+export function initializeBoard() {
     let child, img  = null;
     // Populate the global variables
     resizeBoard(window.innerWidth, window.innerHeight);
 
     // Define the squares, the pieces are added later
     const container = document.getElementById("board");
-
+//    container.style.background = "url('/images/" + _globals.boardTheme +"/board.png')";
+//    container.style.backgroundSize = "cover";
+    
     for (let rank = 0; rank < _boardRanks.length; rank++) {
         for (let file = 0; file < _boardFiles.length; file++) {
             child = document.createElement("div");
             child.className = `square file-${_boardFiles[file]} rank${_boardRanks[rank]}`;
             child.id=`${_boardFiles[file]}${_boardRanks[rank]}`;
-            img = "url('" + _origin + "/images/" + _gameTheme;
+            img = "url('/images/" + _globals.boardTheme;
             img += ((rank+file)%2 == 1 ) ? "/darkSquare.png')" : "/lightSquare.png')";
             child.style.background = img;
             child.style.backgroundSize = "cover";
@@ -833,14 +851,14 @@ function defineBoard() {
 
             // Make squares clickable
             child.addEventListener("click", (e) => {
-                let continuePlay = clickEvent(e);
+                let moveNotation = clickEvent(e);
                 if( _audioResult == null ) _audioResult = _audioMove;
                 try {
                     _audioResult.play();
                 } catch (error) {
                     console.error("Click event audio playback failed:", error);
                 }
-                if(continuePlay) playStep();
+                playMove(moveNotation);
             });
 
             // Allow squares to respond to drag&drops
@@ -861,17 +879,19 @@ function defineBoard() {
             child.addEventListener("drop", (e) => {
                 e.preventDefault();
 
-                let continuePlay = dropEvent(e);
+                let moveNotation = dropEvent(e);
                 if( _audioResult == null ) _audioResult = _audioMove;
                 try {
                     _audioResult.play();
                 } catch (error) {
                      console.error("Drop event audio playback failed:", error);
                 }
-                if(continuePlay) playStep();
+                playMove(moveNotation);
             });
         }
     }
+    // Default opening position
+    resetPieces()
 }
 
 function unhighlightSquare( square, className ) {
@@ -887,7 +907,7 @@ function highlightSquare( square, className ) {
     square.appendChild(child);
 }
 
-// ----------------- game control functions --------------------- //
+// ----------- game control functions ---------------- //
 function resetClickDrag(check = false) {
     _activePiece = null;
     unhighlightSquare( document, "probe-overlay" );
@@ -902,7 +922,8 @@ function userMove( move = _activePiece ) {
     if( _moveTos.includes(move.endSquare.alpha) == false ) {
         // invalid move
         _audioResult = _audioIllegal;
-        return false;
+        _activePiece = null;
+        return null;
     }
 
     let note = _activePiece.pieceType.toUpperCase();
@@ -926,137 +947,11 @@ function userMove( move = _activePiece ) {
             checked = "#";
     }
     note += checked;
-    
-    // Look to see if our move matches the answer
-    for (const item of _goodMoves) {
-        if( note == item.note ) {
-            _currentScore += item.par;
-            item.played = true;
-            _positiveMove = true;
-            _audioResult = _audioCorrect;
-            return true;
-        }
-    }
-    
-    // Wrong, so move along
-    _audioResult = _audioWrong;
-    return true;
+    _activePiece = null;
+    return note;
 }
 
-async function playHint() {
-    let square = {};
-    if( _game.iStep == _game.steps.length )
-        // Game over, nothing to do
-        return;
-
-    _move = _game.steps[_game.iStep][0];
-    _game.WorB = _move.WorB;
-
-    if ("0oO".includes(_move.notation[0])) {
-        let king = (_game.WorB == "w") ? "wk" : "bk";
-        square = document.querySelectorAll(`[data-group^="${king}"]`);
-        square = square[0].parentElement;
-    } else {
-        _move.startSquare = {};
-        _move.endSquare = {};
-        if( ! parseMove(_move.notation) ) {
-            console.log( `Bad move notation: ${_move.notation}` );
-            return;
-        }
-        identifyPiece();
-        square = document.getElementById(_move.startSquare.alpha);
-    }
-    highlightSquare( square, "probe-overlay" );
-}
-
-async function playStep() {
-    if( _game.iStep == 0 ) {
-        // First step, so show summary in sidebar
-        showSummaryInSidebar();
-        _game.moveCount = 0;
-    }
-
-    if( _game.iStep == _game.steps.length )
-        // Game over, nothing to do
-        return;
-
-    // Normal play
-    resetClickDrag(true);
-    _step = _game.steps[_game.iStep];
-    for( _step.iMove = 0; _step.iMove < _step.length; _step.iMove++ ) {
-        _move = _step[_step.iMove];
-        await playMove();
-    }
-    showStepInSidebar();
-    showScoreInSidebar();
-    _game.iStep++;
-
-    if( _game.iStep == _game.steps.length ) {
-        // Finished last step, show result
-        showGameResult();
-        getCurrentFEN();
-        if( _game.currentPosition == _game.endingPosition )
-            console.log("%cSuccess -" +`${_game.currentPosition}`, "color: green;" );
-        else
-            console.log("%cFailed -" + `${_game.currentPosition}`, "color: red;" );
-        console.log(`${_game.endingPosition}`);
-        return;
-    }
-
-    // Setup scoring for next step
-    let half = _game.steps[_game.iStep][0];
-    _goodMoves = [];
-    _goodMoves.push( { "note":half.notation, "par":half.par, "alt":false, "played":false} );
-    if (Array.isArray(half.alts)) { 
-        half.alts.forEach(item => {
-            _goodMoves.push( { "note":item.notation, "par":item.par, "alt":true, "played":false} );
-        });
-    }
-
-
-    //Wait for a user action to execute the next step
-}
-
-// Fetch data from the JSON URL
-async function fetchGame(url) {
-    try {
-        const response = await fetch(url);
-
-        // Check if the request was successful
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        // Parse the JSON from the response
-        _game = await response.json();
-        console.log("fen="+_game.startingPosition);
-        return setupGame(_game.startingPosition);
-    } catch (error) {
-        console.error('Error fetching JSON:', error);
-    }
-}
-
-// Fetch data from the JSON URL
-async function readGameSet(url) {
-    try {
-        const response = await fetch(url);
-
-        // Check if the request was successful
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        // Parse the JSON from the response to load the global _gameSet{}
-        _gameSet = await response.json();
-        console.log("gameSet read:"+url);
-    } catch (error) {
-        console.error('Error fetching JSON:', error);
-    }
-
-    return;
-}
-
-function getCurrentFEN() {
+function getFEN() {
     let fen = "";
     let spaces = 0;
     const _boardFiles="abcdefgh";
@@ -1086,144 +981,6 @@ function getCurrentFEN() {
         }
         if( rank > 0 ) fen += "/";
     }
-    _game.currentPosition = fen;
-    return;
+    return fen;
 }
 
-async function playMove() {
-    _move = _step[_step.iMove];
-    _game.WorB = _move.WorB;
-      // Handle the castling special case
-    if ("0oO".includes(_move.notation[0])) {
-        moveCastle(_move.notation);
-    } else {
-        
-        _move.startSquare = {};
-        _move.endSquare = {};
-        if( ! parseMove(_move.notation) ) {
-            console.log( `Bad move notation: ${_move.notation}` );
-            return;
-        }
-        if( identifyPiece() ) {
-            await executeMove(_move);
-        }
-    }
-    // fix play sound here or at end of executemove?
-
-    if( _move.delay ) 
-        await sleep( _move.delay * 1000 );
-    _game.WorB = (_move.WorB == 'w') ? "b" : "w";
-    return;
-}
-
-// --------------- Sidebar functions ---------------------------
-function showStepInSidebar() {
-    let text, white, black, par = "";
-
-    let m = 0; 
-    while( m < _step.length ) {
-        if(( m+1 <  _step.length ) && ! _step[m].comment ) {
-            // look ahead for a full move
-            // first half move is always white and never scored
-            white = _step[m++].notation;
-            black = _step[m].notation;
-            _game.moveCount++;
-        }
-        else {
-            // Handle as a half move
-            if( _step[m].WorB == "w" ) {
-                _game.moveCount++;
-                white = _step[m].notation;
-                black = "...";
-            } else {
-                white = "...";
-                black = _step[m].notation;
-            }
-        }
-
-        text = `<p class="move-count">${_game.moveCount}:</p>`;
-        text += `<p class="move-half">${white}</p>`;
-        if( _step[m].par ) {
-            // Add score if any
-            if(_positiveMove) {
-                par = "<p class='move-positive'> ";
-                _positiveMove = false;
-            } else {
-                par = "<p class='move-negative'> ";
-            }
-            par += `Score: ${_step[m].par}</p>`;
-        } else {
-            par = "<p class='move-negative'> </p>";
-        }
-        text += par;
-        text += `<p class="move-half">${black}</p>`;
-        addToSidebar( text, "move-div" );
-
-        if( _step[m].comment ) {
-            // Add comment
-            addToSidebar( `<p>${_step[m].comment}</p>`, "sidebar-div" );
-        }
-        text = "";
-        m++;
-    }
-}
-
-function showGameResult() {
-    let ranks = [
-        { "min":95, "rank":"2400+" },
-        { "min":81, "rank":"2200-2399" },
-        { "min":66, "rank":"2000-2199" },
-        { "min":51, "rank":"1800-1999" },
-        { "min":36, "rank":"1600-1799" },
-        { "min":21, "rank":"1400-1599" },
-        { "min":6, "rank":"1200-1399" },
-        { "min":0, "rank":"Under 1200" }
-        ];
-
-    if( _currentScore == 0 )
-        // Just testing
-        return;
-
-    let finalRank = "";
-    ranks.forEach(item => {
-        if( (finalRank == "") && (item.min <= _currentScore) ) {
-            finalRank = item.rank;
-        }
-    });
-
-    let text =  `<h2>Rank: ${finalRank}</h2>`;
-    addToSidebar( text, "sidebar-score" );
-}
-
-function showScoreInSidebar() {
-    let score = document.getElementById("currentScore");
-    score.innerHTML = `Score: ${_currentScore}`;
-}
-
-function showSummaryInSidebar() {
-    let text = "";
-    if(_game.title) text += `<h2>${_game.title}</h2>`;
-    if(_game.subtitle) text += `<h3>${_game.subtitle}</h3>`;
-    if(_game.white) text += `<p><b>White: </b>${_game.white}<br/>`;
-    if(_game.black) text += `<p><b>Black: </b>${_game.black}<br/>`;
-    if(_game.annotator) text += `<p><b>Annotator: </b>${_game.annotator}<br/>`;
-    if(_game.source) text += `<b>Source: </b>${_game.source}<br/>`;
-    if(_game.opening) text += `<b>Opening: </b>${_game.opening}<br/><p/>`;
-    addToSidebar( text, "sidebar-div" );
-
-    addToSidebar( `<p><b>Summary: </b>${_game.summary}</p>`, "sidebar-div");
-
-}
-
-function addToSidebar( text, className="div" )
-{
-    let sidebar = document.getElementById( "sidebar-top" );
-    const child = document.createElement("div");
-
-        // Add classes and content to the child div
-        child.className = className;
-        child.id = "sidebar-0";
-        child.innerHTML = text;
-        sidebar.appendChild(child);
-        sidebar.scrollTop = sidebar.scrollHeight;   
-}

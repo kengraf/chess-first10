@@ -65,7 +65,7 @@ def parse_pgn_to_json(filename):
         if not line:
             if in_moves_section:
                 # Move section complete
-                m = moves.split("10.")
+                m = moves.split("11.")
                 if good_game( result, len(m) ):
                     hash_add_opening(m[0].strip())
                 moves = ""
@@ -86,11 +86,11 @@ def parse_pgn_to_json(filename):
         elif line.startswith('1.') or in_moves_section:
             in_moves_section = True
             # Concat remaining lines in to move string
-            moves += line
+            moves += " " + line
     
     # Add last game to openings
     if moves:
-        hash_add_opening(moves.split("10.")[0].strip())
+        hash_add_opening(moves.split("11.")[0].strip())
     
     return
 
@@ -102,14 +102,12 @@ if __name__ == "__main__":
         print("Usage: python fetch_reduce.py <filename>")
         sys.exit(1)
     
-    new_pgn = sys.argv[1]
-    
     read_previously_reduced("first10.pgn")
     
-    parse_pgn_to_json(new_pgn)
+    parse_pgn_to_json(sys.argv[1])
 
     with open('first10.pgn', 'w', encoding='utf-8') as f:
         for o in openings:
-            if openings[o]["count"] > 10:
+            if openings[o]["count"] > 1:
                 f.write(f'{openings[o]["count"]}\t{openings[o]["moves"]}\n')
 
