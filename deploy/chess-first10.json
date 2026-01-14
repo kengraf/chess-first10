@@ -1,0 +1,36 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "CloudFormation template to create an public website, and lambda based API to dynamoDB",
+  "Parameters": {
+      "S3bucketName" : {
+        "Description" : "Postfix name for created resources",
+        "Type" : "String"
+      },
+      "DeployName" : {
+        "Description" : "Prefix name for created resources",
+        "Type" : "String"
+      }
+  },
+  "Resources": {
+    "S3Bucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName" : {"Ref": "S3bucketName" }
+      }
+    }
+  },
+  "Outputs": {
+    "S3BucketName": {
+      "Value": { "Ref": "S3Bucket" },
+      "Export": { "Name": "S3BucketName" }
+    },
+    "S3BucketArn": {
+      "Value": { "Fn::Sub": "arn:aws:s3:::${S3bucketName}/*" },
+      "Export": { "Name": "S3BucketArn" }
+    },
+    "S3BucketRegionalDomainName": {
+      "Value": { "Fn::GetAtt": ["S3Bucket", "RegionalDomainName"] },
+      "Export": { "Name": "S3BucketRegionalDomainName" }
+    }
+  }
+}
