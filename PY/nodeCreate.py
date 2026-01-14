@@ -7,6 +7,7 @@ iNode = 0
 
 def addGame(game):
     count = int(game.pop(0))
+    if (count < 3): return
     while len(game):
         discardNumber = game.pop(0)
         add2nodes(count, game.pop(0)) # white

@@ -14,8 +14,15 @@ _globals.gameOptions = {
 			"url":"data/first10.pgn"};
 _globals.boardTheme = _globals.gameOptions.theme[0];
 _globals.pgnURL = _globals.gameOptions.url[0];
-
-
+_globals.minimumTurns = 1;
+_globals.maximumTurns = 10;
+_globals.PGN = ""; // local instead?
+_globals.FEN = "";
+_globals.nextNode = 0;
+_globals.steps = [];
+_globals.peekSteps = [];
+_globals.playingAs = "white";
+_globals.preferColor = "white";
 /*
 // ---------- Code to run the game -------------
 
@@ -33,7 +40,7 @@ function init() {
 	GameData.processNodesURL('/data/first10.nodes');
 
 	// Generate sidebar and UI elements
-//	const sidebar = new Sidebar('container-sb');
+	Sidebar.init('container-sb');
 }
 
 

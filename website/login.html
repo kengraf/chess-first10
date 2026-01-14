@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <style>
+    .login-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+    }
+
+  </style>
+</head>
+<body>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+  function handleCredentialResponse(response) {
+    const idToken = response.credential;
+
+    // Send the token to your backend via POST ---- GET
+    fetch('/v1/verifyToken', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ idToken }),
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Token verification failed: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Data fetched:', data);
+        const sub = `uuid=${data["uuid"]}&idToken=${data["idToken"]}`;
+        window.location.href = `/dashboard.html?${sub}`;
+      })
+      .catch(error => {
+        console.error('Error verifying token:', error);
+      });
+  }
+
+  // Render the Google Sign-In button
+  window.onload = function () {
+    google.accounts.id.initialize({
+      client_id: '1030435771551-qnikf54b4jhlbdmm4bkhst0io28u11s4.apps.googleusercontent.com',
+      callback: handleCredentialResponse,
+    });
+    google.accounts.id.renderButton(
+      document.getElementById('buttonDiv'),
+      { theme: 'outline', size: 'large' } // Customization options
+    );
+    google.accounts.id.prompt(); // Optional auto-popup
+  };
+</script>
+
+<div class="login-container">
+    <h1>Login</h1>
+    <p>Please log in using your Google account.</p>
+    <div id="buttonDiv"></div>
+</div>
+</body>
+</html>

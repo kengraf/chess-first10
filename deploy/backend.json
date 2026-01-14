@@ -1,0 +1,174 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "CloudFormation template to deploy a Python Lambda function with API Gateway v2 and DynamoDB.",
+  "Parameters": {
+    "DeployName": {
+      "Description": "Prefix name for created resources",
+      "Type": "String"
+    },
+    "S3bucketName": {
+      "Description": "S3 bucket name containing Lambda function code",
+      "Type": "String"
+    }
+  },
+  "Resources": {
+    "LambdaExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": ["lambda.amazonaws.com"]
+              },
+              "Action": ["sts:AssumeRole"]
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": {
+              "Fn::Join": ["", [{"Ref": "DeployName"}, "LambdaExecution"]]
+            },
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": "arn:aws:logs:*:*:*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:PutItem",
+                    "dynamodb:GetItem",
+                    "dynamodb:Scan",
+                    "dynamodb:Query"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": ["DynamoDBTable", "Arn"]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "DynamoDBTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": {
+          "Fn::Join": ["", [{"Ref": "DeployName"}, "SessionTable"]]
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "email",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "email",
+            "KeyType": "HASH"
+          }
+        ],
+        "BillingMode": "PAY_PER_REQUEST"
+      }
+    },
+    "PythonLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "FunctionName": {
+          "Fn::Join": ["", [{"Ref": "DeployName"}, "VerifyToken"]]
+        },
+        "Handler": "verifyToken.handler",
+        "Runtime": "python3.12",
+        "Role": {
+          "Fn::GetAtt": ["LambdaExecutionRole", "Arn"]
+        },
+        "Code": {
+          "S3Bucket": {"Ref": "S3bucketName"},
+          "S3Key": "function.zip"
+        },
+        "MemorySize": 128,
+        "Timeout": 15,
+        "Environment": {
+          "Variables": {
+            "TABLE_NAME": {"Ref": "DynamoDBTable"}
+          }
+        }
+      }
+    },
+    "HttpApi": {
+      "Type": "AWS::ApiGatewayV2::Api",
+      "Properties": {
+        "Name": {
+          "Fn::Join": ["", [{"Ref": "DeployName"}, "VerifyToken"]]
+        },
+        "ProtocolType": "HTTP"
+      }
+    },
+    "LambdaIntegration": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {"Ref": "HttpApi"},
+	"IntegrationMethod": "POST",
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {"Fn::GetAtt": ["PythonLambdaFunction", "Arn"]},
+        "PayloadFormatVersion": "2.0"
+      }
+    },
+    "HttpApiRoute": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {"Ref": "HttpApi"},
+        "RouteKey": "POST /verifyToken",
+        "Target": {
+          "Fn::Join": [
+            "",
+            ["integrations/", {"Ref": "LambdaIntegration"}]
+          ]
+        }
+      }
+    },
+    "LambdaInvokePermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {"Ref": "PythonLambdaFunction"},
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*"
+        }
+      }
+    },
+    "HttpApiStage": {
+      "Type": "AWS::ApiGatewayV2::Stage",
+      "Properties": {
+        "ApiId": { "Ref": "HttpApi" },
+	"AutoDeploy": true,
+        "StageName": "v1",
+        "Description": "Production stage"
+      }
+    }
+  },
+  "Outputs": {
+    "ApiEndpoint": {
+	"Value": {"Fn::GetAtt": ["HttpApi", "ApiEndpoint"] },
+        "Export" : { "Name" : {"Fn::Join": ["-", [{"Ref" : "DeployName"}, "ApiEndpoint" ]]}}
+	},
+    "ApiGatewayInvokeUrl": {
+      "Description": "Invoke URL for the API Gateway stage",
+      "Export" : { "Name" : {"Fn::Join": ["-", [{"Ref" : "DeployName"}, "Gateway", "URL" ]]}},
+      "Value": { "Fn::Sub": "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/v1" }
+    }
+  }
+}

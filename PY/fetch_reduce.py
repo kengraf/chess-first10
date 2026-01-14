@@ -108,6 +108,6 @@ if __name__ == "__main__":
 
     with open('first10.pgn', 'w', encoding='utf-8') as f:
         for o in openings:
-            if openings[o]["count"] > 1:
+            if openings[o]["count"] > 0:
                 f.write(f'{openings[o]["count"]}\t{openings[o]["moves"]}\n')
 

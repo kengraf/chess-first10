@@ -4,9 +4,21 @@
   --square-size: calc(var(--board-size) / 8);
   --sidebar-min-width: 300;
   --sidebar-width: 300;
-  --theme-light-color: #D9E4E8;
+  --theme-light-color: white /*#D9E4E8;*/
   --theme-dark-color: #7498AE;
   --font-family: "Roboto",  "Arial", sans-serif;
+
+  /* Vibrant Primary Colors (for comparison) */
+  --color-red-vibrant: hsl(0, 100%, 50%);
+  --color-blue-vibrant: hsl(240, 100%, 50%);
+  --color-green-vibrant: hsl(120, 100%, 25%); /* Darker green for contrast */
+  --color-yellow-vibrant: hsl(60, 100%, 50%);
+
+  /* Muted Primary Colors (Saturation around 30-50%) */
+  --color-red-muted: hsl(0, 40%, 50%);
+  --color-blue-muted: hsl(240, 35%, 45%);
+  --color-green-muted: hsl(120, 30%, 35%); /* Slightly darker for accessibility */
+  --color-yellow-muted: hsl(60, 50%, 65%); /* Lighter for visibility */
 }
 
 body {
@@ -58,35 +70,43 @@ h1, h2, h3, p {
   justify-content: space-between;
 }
 
-.container-white2play {
+.container-playAs {
   display: flex;
   flex-direction: row;
   width: 90%;
   justify-content: center;
   align-items: center; 
-  background: black;
-  color: white;
   font-size: 2rem;
   font-weight: bold;
   padding: 5px;
   text-align: center;
-  border: 2px solid white;
   border-radius: 8px;
 }
 
-.container-black2play {
+.black2play {
+  background: white;
+  border: 2px solid black;
+  color: white;
+}
+
+.white2play {
+  background: black;
+  border: 2px solid white;
+  color: white;
+}
+
+.message {
+  width: 80%;
   display: flex;
   flex-direction: row;
-  width: 90%;
   justify-content: center;
   align-items: center; 
   background: white;
-  color: black;
-  font-size: 2rem;
-  font-weight: bold;
+  color: white;
+  font-size: 1rem;
   padding: 5px;
   text-align: center;
-  border: 2px solid black;
+  border: none;
   border-radius: 8px;
 }
 
@@ -97,7 +117,67 @@ h1, h2, h3, p {
   gap: 0px;
   padding: 0px;
 }
- 
+
+.messageBox {
+  display: none;
+  width: 80%;
+  justify-content: center;
+  align-items: center; 
+  font-size: 1rem;
+  font-weight: bold;
+  text-align: center;
+  border: none;
+  border-radius: 8px;
+  padding: 4px;
+}
+.blue {
+  background: var(--color-blue-muted);
+  color: white;
+}
+.green {
+  background: var(--color-green-muted);
+  color: white;
+}
+.yellow {
+  background: var(--color-yellow-muted);
+  color: black;
+}
+.red {
+  background: var(--color-red-muted);
+  color: white;
+}
+
+
+.copy-pgn {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 3px 3px;
+  width: 80%;
+}
+
+.copy-pgn input {
+  border: none;
+  outline: none;
+  padding: 6px;
+  font-size: 14px;
+  width: 95%;
+}
+
+.copy-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 3px 3px;
+  margin: 0px;
+}
+
+.copy-btn:hover {
+  opacity: 0.7;
+}
+
 .container-sb-v1 {
   align-items: center;
   border: 2px solid yellow;
@@ -108,49 +188,39 @@ h1, h2, h3, p {
 }
 
 .container-sb {
+    color: white;
+    display: flex;
+    flex-direction: column;
     flex: 1;
     min-width: 250px;
-    background-color: #34495e;
+    background-color: black;
     border-radius: 8px;
     height: 100vh;
     padding: 5px;
-    color: white;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
 }
  
-.container-sb-header-old {
-  display: flex;
-  flex: 1;
-  flex-direction: row;
-}
-.container-sb-body-old {
-  display: flex;
-  flex: 8;
-  flex-direction: column;
-}
-.container-sb-footer-old {
-  display: flex;
-  flex: 1;
-  gap: 10px;
-  flex-direction: row;
-}
-
 .container-sb-top {
     flex: 0 0 10%;
     Flex-direction: row;
 }
 
 .container-sb-middle {
+    align-items: center;
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; 
     overflow-y: auto;
     margin: 20px 0;
+    gap: 10px;
 }
 
 .container-sb-bottom {
     flex: 0 0 10%;
+    display: flex;
     Flex-direction: row;
+    justify-content: center;
+    align-items: center;
 }
 
 .container-window {
@@ -162,14 +232,20 @@ h1, h2, h3, p {
 }
 
 .crown-container {
-    width: 50px;
-    height: 50px;
-    background-color: green;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
     align-items: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background-color: var(--color-green-muted);
+    border-radius: 50%;
+    border: 4px;
+    display: flex;
+    height: 50px;
+    justify-content: center;
+    width: 50px;
+}
+
+.crown-container:hover {
+  background-color: var(--color-blue-muted);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 .crown-icon {
@@ -247,21 +323,8 @@ h1, h2, h3, p {
   justify-content: center;
 }
 
-button2 {
-  background-color: green;
-  border: 1px solid transparent;
-  border-radius: 2px;
-  border-width: 1px;
-  border-color: green;
-  cursor: pointer;
-  font-size: 1.5rem;
-  justify-content: center;
-  margin: 5px;
-  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
-
 button {
-  background-color: green; // #007bff;
+  background-color: var(--color-green-muted);
   border: none;
   border-radius: 5px;
   color: white;
@@ -270,13 +333,15 @@ button {
   font-weight: 200;
   margin: 5px;
   padding: 10px 10px;
-  transition: all 0.3s ease; /* Smooths the transition */
+  transition: all 0.3s ease;
+  justify-content: center;
+  align-items: center;
 }
 
 button:hover {
-  background-color: #0056b3; /* Darker or brighter shade */
-  transform: translateY(-2px) scale(1.05); /* Lifts and grows slightly */
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Adds depth */
+  background-color: var(--color-blue-muted);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 .splash-button {
@@ -286,16 +351,7 @@ button:hover {
 .sb-button {
   height: 50px;
 }
-
-.sb-button p {
-  color: white;
-}
     
-.sb-button button:hover {
-  background-color: green;
-  color: grey;
-}
-
 
 /* Dynamic squares combine file and rank for board position */
 .rank8 {  top: calc(0 * var(--square-size)); }
@@ -307,14 +363,14 @@ button:hover {
 .rank2 {  top: calc(6 * var(--square-size)); }
 .rank1 {  top: calc(7 * var(--square-size)); }
 
-.file-a {  left: calc(0 * var(--square-size)); }
-.file-b {  left: calc(1 * var(--square-size)); }
-.file-c {  left: calc(2 * var(--square-size)); }
-.file-d {  left: calc(3 * var(--square-size)); }
-.file-e {  left: calc(4 * var(--square-size)); }
-.file-f {  left: calc(5 * var(--square-size)); }
-.file-g {  left: calc(6 * var(--square-size)); }
-.file-h {  left: calc(7 * var(--square-size)); }
+.file-1 {  left: calc(0 * var(--square-size)); }
+.file-2 {  left: calc(1 * var(--square-size)); }
+.file-3 {  left: calc(2 * var(--square-size)); }
+.file-4 {  left: calc(3 * var(--square-size)); }
+.file-5 {  left: calc(4 * var(--square-size)); }
+.file-6 {  left: calc(5 * var(--square-size)); }
+.file-7 {  left: calc(6 * var(--square-size)); }
+.file-8 {  left: calc(7 * var(--square-size)); }
 
 .square {
   background-color: transparent;
@@ -389,7 +445,6 @@ button:hover {
   pointer-events: auto;
 }
 
-
     .drop-zone {
       display: flex;
       align-items: center;
@@ -400,3 +455,107 @@ button:hover {
       border-color: #666;
       background-color: #e3e3e3;
     }
+    
+table {
+  border-collapse: collapse;
+  margin: 0 auto; 
+}
+th, td {
+  border-bottom: 1px solid #e0e0e0;
+  padding: 8px 16px;
+  text-align: center; 
+  vertical-align: middle; 
+}
+
+tbody tr:nth-child(odd) {
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #272727;
+}
+
+.settings-label {
+  color: white;
+  padding: 8px 8px;
+  text-align: center; 
+  vertical-align: middle; 
+}
+
+/* two-header slider classes --------------- */
+
+.range-container {
+    width: 300px;
+    margin: 50px auto;
+    position: relative;
+}
+
+.slider-wrapper {
+    position: relative;
+    height: 10px; /* Track height */
+}
+
+/* Base styling for both sliders */
+input[type="range"] {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    /* Hide default styles */
+    -webkit-appearance: none;
+    background: none;
+    pointer-events: none; /* Allows clicks to go through to the element beneath */
+}
+
+/* Make only the thumbs interactive */
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #04AA6D; /* Green color for thumbs */
+    cursor: pointer;
+    border-radius: 50%;
+    pointer-events: all; /* Re-enable pointer events for the thumb itself */
+    position: relative;
+    z-index: 2;
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #04AA6D;
+    cursor: pointer;
+    border-radius: 50%;
+    pointer-events: all;
+    position: relative;
+    z-index: 2;
+}
+
+/* Styling the track background */
+.slider-wrapper::before {
+    content: "";
+    position: absolute;
+    height: 5px;
+    width: 100%;
+    background: #ddd; /* Gray track background */
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 0;
+}
+
+/* Styling the selected range fill (progress bar) */
+.progress {
+    position: absolute;
+    height: 5px;
+    background: #4CAF50; /* A different green for the active range */
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+    /* JS will update left/right properties */
+}
+
+.slider-headers {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: white;
+}
+

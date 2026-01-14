@@ -1,5 +1,8 @@
 import { _globals } from './first10.js';
 
+import * as GameData from './gameData.js';
+import * as Sidebar from './sidebar.js'
+
 // JSON Object for _game
 let _game = {
     startingPosition: "",  //FEN format
@@ -10,7 +13,7 @@ let _game = {
     WorB: "w",
 };
 
-export function playMove(notation) {
+export function playMove(notation,isUserMove) {
     if( notation == null ) return;
 
     _move.notation = notation;
@@ -38,15 +41,20 @@ export function playMove(notation) {
         await sleep( _move.delay * 1000 );
 */
     _game.WorB = _move.WorB = (_move.WorB == 'w') ? "b" : "w";
+    GameData.updateNode(notation);
+    if( isUserMove ) {
+        Sidebar.setResultsTable(notation);
+    }
     return;
 }
 
 
-// To make the asscii string notation to matrix work easier
-const _fileToX = { a:0, b:1, c:2, d:3, e:4, f:5, g:6, h:7 };  // _fileToX["c"] = 2
-const _rankToY = { 1:0, 2:1, 3:2, 4:3, 5:4, 6:5, 7:6, 8:7 };  // _rankToY[5] = 4
-const _boardFiles ='abcdefgh';
-const _boardRanks = '87654321';  // <div> position 0 is board rank 8
+// To make the ascii string notation to matrix work easier
+let _fileToX = { a:0, b:1, c:2, d:3, e:4, f:5, g:6, h:7 };  // _fileToX["c"] = 2
+let _rankToY = { 1:0, 2:1, 3:2, 4:3, 5:4, 6:5, 7:6, 8:7 };  // _rankToY[5] = 4
+let _boardFiles ='abcdefgh';  // Reverse when flipped
+let _boardRanks = '87654321'; 
+let _flipped = false;
 let _positiveMove = false;
 let _squareSize = 60;
 
@@ -73,7 +81,10 @@ let _move = {
 // ------------- helper/utility functions --------------
 
 function index2alpha( file, rank ) {
-    return( "abcdefgh"[file] + "12345678"[rank] );
+    if( _flipped )
+        return( "hgfedcba"[file] + "87654321"[rank] );
+    else
+        return( "abcdefgh"[file] + "12345678"[rank] );
 }
 
 function index2node( file, rank ) {
@@ -324,7 +335,14 @@ function availPawnSquares(piece) {
     ];
 
     let distance = 1;
+    let goNorth = true;
     if( piece.WorB == "w" ) {
+        goNorth = !_flipped;
+    }
+    if( piece.WorB == "b" ) {
+        goNorth = _flipped;
+    }
+    if( goNorth ) {
         if( piece.startSquare.rank == 1 ) distance++;
         probeFunc[0](piece, distance, "wb");
     } else {
@@ -333,7 +351,7 @@ function availPawnSquares(piece) {
     }
 
     // Capture moves
-    distance = (piece.WorB=="w") ? 1:-1;
+    distance = (goNorth) ? 1:-1;
     let x = piece.startSquare.file;
     let y = piece.startSquare.rank + distance;
     probeOppOnSquare( x-1, y, piece.WorB );
@@ -451,6 +469,32 @@ return false; // DEBUG and FIX
 }
 
 // ------------ piece location and placement -----------
+function disambiguate(move) {
+    // Extra notation needed if two pieces of
+    // same type can make move
+    const colorType = move.WorB + move.pieceType;
+    const candidates = document.querySelectorAll(`[data-group="${colorType}"]`);
+
+    for (const node of candidates) {
+        // Cycle thru all the pieces of that type.
+        let sq = pickedValidPiece( node );
+        _moveTos = [];
+        showPossibles( sq );
+        unhighlightSquare( document, "probe-overlay" );
+        
+        for( const m of _moveTos ) {
+            if( m == move.endSquare.alpha) {
+                if( sq.startSquare.alpha != move.startSquare.alpha ) {
+                if( sq.startSquare.alpha[0] == move.startSquare.alpha[0] )
+                    return move.startSquare.alpha[1];
+                else 
+                    return move.startSquare.alpha[0];
+                }
+            }
+        }
+    }
+    return "";
+}
 
 // ------------------ Move Functions --------------------
 
@@ -574,6 +618,7 @@ function parseMove(notation) {
     _move.disambiguate = "";
     _move.promotionPiece = "";
     _game.enPassant = '-';
+    _move.checkResult = false;
 
     // Peel off the special ending states
     let lastC = notation.charAt(notation.length - 1);
@@ -649,29 +694,28 @@ export function resetPieces( fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR 
     // FEN notation for initial board setup
     const parts = fen.split(" ");
     _game.initalBoard = parts[0];
-    _move.WorB = parts[1];
+    _game.WorB = _move.WorB = parts[1];
     _game.castling = parts[2];
     _game.enPassant = parts[3];
     _game.halfMoves = parts[4];
     _game.fullMoves = parts[5];
     _game.fen = fen
+    _globals.nextNode = 0;
+    _globals.PGN = "";
+    _globals.steps = []
 
-    const ranks = parts[0].split("/");
-    if (ranks.length != 8) {
+    const fenRanks = parts[0].split("/");
+    if (fenRanks.length != 8) {
         console.log(`Invalid FEN:${fen}`);
         return;
         }
-
-    // Drop pieces from any previous game
-    clearBoard();
-
+    
     // Go thru the ranks 8 to 1
-    for (let rank = 0; rank < ranks.length; rank++) {
+    for (let rank = 7; rank >= 0; rank--) {
         let fileIndex = 0;
-        let boardRank = _boardRanks[rank];
-        for (const p of ranks[rank]) {
+        for (const p of fenRanks[7-rank]) {
             if ('prnbqkPRNBQK'.includes(p)) {
-                // FEN syntaz white pieces are uppercase
+                // FEN syntax white pieces are uppercase
                 let lowPiece = p.toLowerCase();
                 let piece = "";
                 if (p == lowPiece) {
@@ -680,13 +724,27 @@ export function resetPieces( fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR 
                 else {
                     piece = "w" + lowPiece;
                 }
-                pieceAdd(piece, `${_boardFiles[fileIndex]}${boardRank}` );
+                pieceAdd(piece, `${"abcdefgh"[fileIndex]}${rank+1}` );
                 fileIndex++;
             } else if(_boardRanks.includes(p)) {
                 // skips empty squares
                 fileIndex += parseInt(p, 10);
             }
         }
+    }
+}
+
+function setRanksFiles() {
+    if( _flipped ) {
+        _fileToX = { a:7, b:6, c:5, d:4, e:3, f:2, g:1, h:0 };
+        _rankToY = { 1:7, 2:6, 3:5, 4:4, 5:3, 6:2, 7:1, 8:0 };
+        _boardFiles = 'hgfedcba';
+        _boardRanks = '12345678';
+    } else {
+        _fileToX = { a:0, b:1, c:2, d:3, e:4, f:5, g:6, h:7 };
+        _rankToY = { 1:0, 2:1, 3:2, 4:3, 5:4, 6:5, 7:6, 8:7 };
+        _boardFiles ='abcdefgh';
+        _boardRanks = '87654321'; 
     }
 }
 
@@ -832,22 +890,36 @@ export function initializeBoard() {
     let child, img  = null;
     // Populate the global variables
     resizeBoard(window.innerWidth, window.innerHeight);
-
+    
+    setRanksFiles();
+    let gridFiles = "abcdefgh";
+    let gridRanks = "12345678";
+    if(_globals.playingAs == "black") {
+        gridFiles = "hgfedcba";
+        gridRanks = "87654321";
+    }
+        
+    
     // Define the squares, the pieces are added later
     const container = document.getElementById("board");
-//    container.style.background = "url('/images/" + _globals.boardTheme +"/board.png')";
-//    container.style.backgroundSize = "cover";
+
+    container.innerHTML = ''; //kill any previous game
     
-    for (let rank = 0; rank < _boardRanks.length; rank++) {
-        for (let file = 0; file < _boardFiles.length; file++) {
+    for (let rank = 0; rank < 8; rank++) {
+        for (let file = 0; file < 8; file++) {
             child = document.createElement("div");
-            child.className = `square file-${_boardFiles[file]} rank${_boardRanks[rank]}`;
-            child.id=`${_boardFiles[file]}${_boardRanks[rank]}`;
-            img = "url('/images/" + _globals.boardTheme;
-            img += ((rank+file)%2 == 1 ) ? "/darkSquare.png')" : "/lightSquare.png')";
+            child.className = `square file-${file+1} rank${rank+1}`;
+            child.id=`${gridFiles[file]}${gridRanks[rank]}`;
+            let sqName = _globals.boardTheme;
+            sqName += ((rank+file)%2 == 0 ) ? "/darkSquare" : "/lightSquare";
+            if(file == 0)sqName += `${gridRanks[rank]}`;
+            if(rank == 0)sqName += `${gridFiles[file]}`;
+            img = `url('/images/${sqName}.png')`;
+           
             child.style.background = img;
             child.style.backgroundSize = "cover";
             container.appendChild(child);
+        
 
             // Make squares clickable
             child.addEventListener("click", (e) => {
@@ -858,7 +930,7 @@ export function initializeBoard() {
                 } catch (error) {
                     console.error("Click event audio playback failed:", error);
                 }
-                playMove(moveNotation);
+                playMove(moveNotation,true);
             });
 
             // Allow squares to respond to drag&drops
@@ -886,7 +958,7 @@ export function initializeBoard() {
                 } catch (error) {
                      console.error("Drop event audio playback failed:", error);
                 }
-                playMove(moveNotation);
+                playMove(moveNotation,true);
             });
         }
     }
@@ -926,18 +998,20 @@ function userMove( move = _activePiece ) {
         return null;
     }
 
-    let note = _activePiece.pieceType.toUpperCase();
+    let note = move.pieceType.toUpperCase();
     if( note == "P" ) {
         note = "";
-        if( _activePiece.captureMove ) {
-            note = _activePiece.startSquare.alpha[0];
+        if( move.captureMove ) {
+            note = move.startSquare.alpha[0];
         }
+    } else {
+        note += disambiguate(move);
     }
-    if( _activePiece.captureMove ) {
+    if( move.captureMove ) {
         note += "x";
     }
-    note += _activePiece.endSquare.alpha;
-    const castled = castleAttempt( _activePiece );
+    note += move.endSquare.alpha;
+    const castled = castleAttempt( move );
     if( castled ) note = castled;
     
     let checked = "";
@@ -954,10 +1028,9 @@ function userMove( move = _activePiece ) {
 function getFEN() {
     let fen = "";
     let spaces = 0;
-    const _boardFiles="abcdefgh";
 
     for (let rank = 7; rank >= 0; rank--) {
-        for (let file = 0; file < _boardFiles.length; file++) {
+        for (let file = 0; file < 8; file++) {
             const parent = document.getElementById(index2alpha(file,rank));
             const child = parent.children[0];
 
@@ -984,3 +1057,20 @@ function getFEN() {
     return fen;
 }
 
+
+function positionAndSizeLabel(parentDiv, type, label) {
+  const labelDiv = document.createElement("div");
+  const labelSize = _squareSize / 8; 
+
+  labelDiv.style.width = labelSize + 'px';
+  labelDiv.style.height = labelSize + 'px';
+  labelDiv.style.fontSize = (labelSize / 4) + 'px';
+  labelDiv.innerHTML = `${label}`;
+  parentDiv.appendChild(labelDiv);  
+}
+
+/*
+// Run the function initially and on window resize for responsiveness
+TBD_positionAndSizeLabel();
+window.addEventListener('resize', TBD_positionAndSizeLabel();
+*/

@@ -1,24 +1,85 @@
+import { _globals } from './first10.js';
+
+import * as Sidebar from './sidebar.js'
+
 let NODES = [{ count: 0, steps: {} }];
 let iNode = 0;
 
 export function getOpening() {
-	// TBD set rounds 1-9
-	// TBD set color w/r/b
+	let min = _globals.minimumTurns;
+	let max = _globals.maximumTurns;
+	var rand = 0;
+	for (var i = 0; i < 2; i += 1) {
+		rand += Math.random();
+	}
+	let steps = Math.floor( (rand/2)*(max-min+1) );
+	steps = (steps+min)*2;
+
+	
+	_globals.playingAs = "white";
+// Add a step for black or randomly
+	if (_globals.preferColor == "black") {
+		_globals.playingAs = "black";
+		}
+	if(_globals.gameOptions.worb == "random") {
+		if (Math.random() > 0.5)
+		_globals.playingAs = "black";
+		}
+		
+	if( _globals.playingAs == "black" ) {
+		steps++;
+	}
+	Sidebar.show("container-playAs",_globals.playingAs,"flex");
+
 	// TBD use ECO
 	// TBD use named opening
-//	return randomGame(5);
-	return ["d4", "Nf6", "c4", "e6", "Nc3"];
+	return randomGame(steps);
 }
 
-function randomGame(turns) {
-	if (typeof turns !== 'number' || turns < 2 || turns > 18) {
+function add_game_step(notation) {
+	let len = _globals.steps.length;
+	if( len % 2 == 0) {
+		_globals.PGN += `${len/2+1}. `;
+	}
+	_globals.steps.push(notation);
+	_globals.PGN += `${notation} `;
+	console.log(_globals.PGN);
+}
+
+export function updateNode(notation) {
+
+	_globals.peekSteps = [];
+	for (const [step, index] of Object.entries(NODES[_globals.nextNode].steps)) {
+		let fStep = {"Move":step, "Index":index,
+		"Count":NODES[index].count};
+		_globals.peekSteps.push(fStep);
+	}
+	_globals.peekSteps.sort((a, b) => b.Count - a.Count);
+	console.log(_globals.peekSteps);
+
+	add_game_step(notation);
+	if( !(notation in NODES[_globals.nextNode].steps)) {
+		// Bad move choice by user
+		return;
+	}
+	_globals.nextNode = NODES[_globals.nextNode].steps[notation];
+	
+
+	console.log(_globals.nextNode);
+}
+	
+
+function randomGame(steps) {
+	if (typeof steps !== 'number' || steps < 2 || steps > 20) {
 		throw new Error('Value must be a number between 0 and 19');
 	}
-	let retVal = [];
+	_globals.steps = [];
+	_globals.PGN = "";
+	_globals.nextNode = 0;
 	let iNode = 0;
 	let move = 1;
 	
-	for (let i = 0; i < turns; i++) {
+	for (let i = 0; i < steps; i++) {
 		let totIndex = 0;
 		for (const [step, index] of Object.entries(NODES[iNode].steps)) {
 			totIndex += NODES[index].count;
@@ -33,15 +94,16 @@ function randomGame(turns) {
 				number -= count;
 			} else {
 
-				retVal.push(step);
+				add_game_step(step);
 				selectedStep = step;
 				selectedIndex = index;
 				break;
 			}
 		}
 		iNode = selectedIndex;
-	}	
-	return retVal;
+	}
+	_globals.nextNode = iNode;
+	return _globals.steps;
 }
 
 	
