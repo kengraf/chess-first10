@@ -202,7 +202,11 @@ logout
    google.accounts.id.prompt(); // Optional auto-popup
   };
 </script>
-
+<script src="scripts/oidc.js"></script>
+<script>
+        // Run the check when the page loads
+    window.onload = checkSessionCookie;
+</script>
 </body>
 
 </html>
