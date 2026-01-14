@@ -1,17 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Secure Page</title>
-  <script src="oidc.js"></script>
-  <script>
-    // Run the check when the page loads
-    window.onload = checkSessionCookie;
-  </script>
+    <title>Chess first 10 moves trainer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- All game styles -->    
+    <link rel="stylesheet" href="scripts/first10.css">
+<!-- Google fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
 </head>
+
 <body>
-  <h1>Welcome to the Secure Page</h1>
-  <p>If you are seeing this, your session cookie is present.</p>
+<div class="full-page-splash" id="splash">
+  <div class="splashCard">
+          <div class="title">
+              Welcome to First 10
+          </div>
+          <div class="splashText">
+            <ul>
+              <li>A simple chess game focused on the opening 10 moves.</li>
+              <li>Curated from over 1 million games played by masters.</li>
+              <li>Play black, white, or random.</li>
+              <li>You can optionally focus on common openings.</li>
+            </ul>
+          </div>
+        </div>
+        <button class="splash-button" onclick="document.getElementById('splash').style.display='none'">Let's get started!</button>
+  </div>
+</div>
+
+<div class="container-window">
+    <div  id="container-board" class="container-board">
+        <div id="board" class="container-grid" >
+        <!-- JS generated pieces in initializeBoard() -->
+        </div>
+    </div>
+
+<!-- Visual sidebar (sb) elements generated in javascript -->
+    <div id="sb-container" class="container-sb">
+      <div id="sb-header" class="container-sb-top">
+        <div class="container-row">
+          <div><p class="title">First 10</p></div>
+          <div><button id="profileBtn" class="sb-button button">login</button>
+          </div>
+          <div><button id="settingsBtn" class="sb-button nutton">&#8230;</button>
+          </div>
+        </div>
+      </div>
+      <div id="sb-body-settings" class="container-sb-middle">
+          <div class="container-row">
+            <div class="settings-label">
+            <p>Color preference White,&nbsp;Random,&nbsp;or&nbsp;Black</p>
+            </div>
+            <div class="container-row">
+              <div id="select-white" class="crown-container">
+                <img src="/images/wk.png" title="Play White" class="crown-icon">
+              </div>
+              <div id="select-random" class="crown-container">
+                <img src="/images/rk.png" title="Random Color" class="crown-icon crown-selected">
+              </div>
+              <div id="select-black" class="crown-container" >
+                <img src="/images/bk.png" title="Play Black" class="crown-icon">
+              </div>
+            </div>
+          </div>
+          
+          <div class="range-container">
+              <div class="slider-headers">
+                  <span id="min-header">1</span>
+                  <p>New game number of turns</p>
+                  <span id="max-header">10</span>
+              </div>
+      
+              <div class="slider-wrapper">
+                  <input type="range" id="min-slider" min="1" max="10" value="1" step="1">
+                  <input type="range" id="max-slider" min="1" max="10" value="10" step="1">
+                  <!-- Progress bar fill (optional, styled by CSS) -->
+                  <div class="progress" id="progress-bar"></div>
+              </div>
+          </div>
+<!-- TBD settings SB panel
+new game playing as ...
+2 ended slider for number of turns 0-9
+eco pull down
+named opening pulldown
+modern/classic
+-->
+    </div>
+      <div id="sb-body-result" class="container-sb-middle">
+      
+      <div class="copy-pgn">
+        <input type="text" id="copyPGN" value="1. e4 e5" readonly>
+        <button class="copy-btn" onclick="copyPGN()" aria-label="Copy">
+          📋
+        </button>
+      </div>
+
+      <div>
+        <table id="resultTable">
+          <thead>
+            <!-- js compelets -->
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+        <div class="messageBox blue" id="resultBlue">
+            <div><p>Well done! You picked the most popular move played by chess masters.</p></div>
+        </div>
+        <div class="messageBox green" id="resultGreen">
+            <div><p>Good.  You picked a common move.</p></div>
+        </div>
+        <div class="messageBox yellow" id="resultYellow">
+            <div><p>OK. Picking the less traveled path?</p></div>
+        </div>
+        <div class="messageBox red" id="resultRed">
+            <div><p>Your move wasn't played in any game.  Most likely an inaccuracy.  Keep trying.</p></div>
+        </div>
+<!-- TBDs
+Animation to show best moves
+Link the move in table to progress game
+fen/pgn - (tbd: link to Chess.com/lichess)
+current session stats line
+Button to show history
+-->
+    </div>
+
+      <div id="sb-body-profile" class="container-sb-middle">
+<!-- TBDs
+show
+games played
+result was best/good/played/unplayed
+replay to improve
+sessions
+delete history
+logout
+-->
+      </div>
+      <div id="sb-body-playing" class="container-sb-middle">
+          <div class="container-playAs white2play" id="white">
+            <div id="white-crown" class="crown-container">
+              <img src="/images/wk.png" alt="Crown" class="crown-icon">
+            </div>
+            <div><p>White to play</p></div>
+          </div>
+        
+          <div class="container-playAs black2play" id="black">
+            <div id="black-crown" class="crown-container">
+              <img src="/images/bk.png" alt="Crown" class="crown-icon">
+            </div>
+            <div><p style="color:black">Black to play</p></div>
+          </div>
+      </div>
+      
+      <div id="sb-footer" class="container-sb-bottom">
+        <div>
+          <button id="newGameBtn" class="sb-button button" style="flex:5">
+          NEW GAME</button>
+      </div>
+    </div>
+  </div>
+<script type="module" src="scripts/first10.js"></script>
+<script src="scripts/confetti.min.js" defer></script>
 </body>
+
 </html>
