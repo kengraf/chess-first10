@@ -60,7 +60,7 @@ aws cloudformation wait stack-create-complete --stack-name ${STACK_NAME}
 aws cloudformation describe-stacks --stack-name ${STACK_NAME} | jq .Stacks[0].Outputs
 
 # Configure a Route53 sub-domian to be used
-CertificateArn="arn:aws:acm:us-east-2:788715698479:certificate/f5a199d0-7175-4992-bc7c-8ed2ad71541b"
+CertificateArn="arn:aws:acm:us-east-1:788715698479:certificate/68670ae0-d9bf-4552-b5e4-594f0c1cf74c"
 DomainName="${DeployName}.kengraf.com"
 HostedZoneId="Z04154431JUEDZVN0IZ8F"
 
