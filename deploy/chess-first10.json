@@ -212,4 +212,171 @@
 }
 
 ---------------- distro ----------------------
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Conditions": {
+    "HasRoute53Domain": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            { "Ref": "HostedZoneId" },
+            ""
+          ]
+        }
+      ]
+    }
+  },
+  "Parameters": {
+    "DeployName": {
+      "Type": "String",
+      "Description": "Prefix for resources",
+      "Default": ""
+    },
+    "HostedZoneId": {
+      "Type": "String",
+      "Description": "Route 53 Hosted Zone ID. Leave blank if no Route 53 domain is available.",
+      "Default": ""
+    },
+    "DomainName": {
+      "Type": "String",
+      "Description": "Custom domain name for CloudFront. Leave blank if not using a custom domain.",
+      "Default": ""
+    },
+    "CertificateArn": {
+      "Type": "String",
+      "Description": "ARN of the ACM certificate for the custom domain. Leave blank if not using a custom domain.",
+      "Default": ""
+    }
+  },
+  "Resources": {
+    "BucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": { "Fn::ImportValue": "S3BucketName" },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::Sub": "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${CloudFrontOriginAccessIdentity}"
+                }
+              },
+              "Action": "s3:GetObject",
+              "Resource": { "Fn::ImportValue": "S3BucketArn" }
+            }
+          ]
+        }
+      }
+    },
+    "CloudFrontOriginAccessIdentity": {
+      "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
+      "Properties": {
+        "CloudFrontOriginAccessIdentityConfig": {
+          "Comment": "OAI for CloudFront to access S3"
+        }
+      }
+    },
+    "CloudFrontDistribution": {
+      "Type": "AWS::CloudFront::Distribution",
+      "Properties": {
+        "DistributionConfig": {
+          "Enabled": true,
+          "DefaultRootObject": "index.html",
+          "PriceClass": "PriceClass_100",
+          "Origins": [
+            {
+              "Id": "S3Origin",
+              "DomainName": { "Fn::ImportValue": "S3BucketRegionalDomainName"  },
+              "S3OriginConfig": {
+                "OriginAccessIdentity": {
+                  "Fn::Sub": "origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}"
+                }
+              }
+            },
+            {
+              "Id": "ApiOrigin",
+              "DomainName": {
+                  "Fn::Select" : [ 1, "Fn::Split" : [ "://", 
+                  "Fn::ImportValue" : {"Fn::Sub" : "${DeployName}-ApiEndpoint"}]] },
+              "OriginPath": "",
+              "CustomOriginConfig": {
+                "OriginProtocolPolicy": "https-only"
+              }
+            }
+          ],
+          "DefaultCacheBehavior": {
+            "TargetOriginId": "S3Origin",
+            "ViewerProtocolPolicy": "redirect-to-https",
+            "AllowedMethods": ["GET", "HEAD", "OPTIONS"],
+            "CachedMethods": ["GET", "HEAD"],
+            "Compress": true,
+            "ForwardedValues": {
+              "QueryString": false,
+              "Cookies": { "Forward": "none" }
+            }
+          },
+          "CacheBehaviors": [
+            {
+              "PathPattern": "/v1/*",
+              "TargetOriginId": "ApiOrigin",
+              "ViewerProtocolPolicy": "redirect-to-https",
+              "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"],
+              "CachedMethods": ["GET", "HEAD"],
+              "Compress": true,
+              "ForwardedValues": {
+                "QueryString": true,
+                "Headers": [ "*" ],
+                "Cookies": { "Forward": "all" }
+              },
+              "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+              "MinTTL": 0,
+              "DefaultTTL": 0,
+              "MaxTTL": 0
+            }
+          ],
+          "ViewerCertificate": {
+            "Fn::If": [
+              "HasRoute53Domain",
+              {
+                "AcmCertificateArn": { "Ref": "CertificateArn" },
+                "SslSupportMethod": "sni-only",
+                "MinimumProtocolVersion": "TLSv1.2_2019"
+              },
+              { "CloudFrontDefaultCertificate": true }
+            ]
+          },
+          "Aliases": {
+            "Fn::If": [
+              "HasRoute53Domain",
+              [{ "Ref": "DomainName" }],
+              { "Ref": "AWS::NoValue" }
+            ]
+          }
+        }
+      }
+    },
+    "Route53RecordSet": {
+      "Condition": "HasRoute53Domain",
+      "Type": "AWS::Route53::RecordSet",
+      "Properties": {
+        "HostedZoneId": { "Ref": "HostedZoneId" },
+        "Name": { "Ref": "DomainName" },
+        "Type": "A",
+        "AliasTarget": {
+          "HostedZoneId": "Z2FDTNDATAQYW2",
+          "DNSName": { "Fn::GetAtt": ["CloudFrontDistribution", "DomainName"] }
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "CloudFrontURL": {
+      "Description": "URL of the CloudFront distribution",
+      "Export" : { "Name" : {"Fn::Join": ["-", [{"Ref" : "DeployName"}, "CloudFront", "URL" ]]}},
+      "Value": { "Fn::Join": [ "", ["https://", { "Fn::GetAtt": ["CloudFrontDistribution", "DomainName"] }]]}
+    }
+  }
+}
 
