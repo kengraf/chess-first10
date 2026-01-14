@@ -39,11 +39,14 @@ if [ ! -e "function.zip" ]; then
 fi
 zip function.zip verifyToken.py
 aws s3 cp function.zip s3://${S3BUCKET}
+FRONT_ID=`aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[?contains(DomainName, 'chess-first10.s3.us-east-2.amazonaws.com')]].Id" --output text`
+aws cloudfront create-invalidation --distribution-id ${FRONT_ID} --paths "/*"
+
 cd ..
 
 echo "Uploading website content"
 cd ../website
-aws s3 sync . s3://${S3BUCKET}
+aws s3 sync . s3://${S3BUCKET} --delete --recursive
 cd ../deploy
 
 echo "Deploying backend components (apigatewayv2, lambda, dynamodb)"
