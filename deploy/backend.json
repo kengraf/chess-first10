@@ -90,7 +90,7 @@
           "Fn::Join": ["", [{"Ref": "DeployName"}, "VerifyToken"]]
         },
         "Handler": "verifyToken.handler",
-        "Runtime": "python3.12",
+        "Runtime": "python3.14",
         "Role": {
           "Fn::GetAtt": ["LambdaExecutionRole", "Arn"]
         },
