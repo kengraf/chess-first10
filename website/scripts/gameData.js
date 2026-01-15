@@ -21,7 +21,7 @@ export function getOpening() {
 	if (_globals.preferColor == "black") {
 		_globals.playingAs = "black";
 		}
-	if(_globals.gameOptions.worb == "random") {
+	if(_globals.preferColor == "random") {
 		if (Math.random() > 0.5)
 		_globals.playingAs = "black";
 		}
