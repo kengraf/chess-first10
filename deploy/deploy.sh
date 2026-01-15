@@ -86,8 +86,8 @@ tests() {
 
 backend() {
   echo "Deploying backend components (apigatewayv2, lambda, dynamodb)"
-  STACK_NAME="$DeployName-backend"
-  aws cloudformation deploy --stack-name ${DEPLOYNAME}-backend \
+  STACK_NAME="${DEPLOYNAME}-backend"
+  aws cloudformation deploy --stack-name ${STACK_NAME} \
     --template-file backend.json \
     --capabilities CAPABILITY_NAMED_IAM \
     --parameter-overrides \
@@ -95,7 +95,6 @@ backend() {
         DeployName=${DeployName} \
     --output text
   echo "Waiting on ${STACK_NAME} create completion..."
-  aws cloudformation wait stack-create-complete --stack-name ${STACK_NAME}
   aws cloudformation describe-stacks --stack-name ${STACK_NAME} | jq .Stacks[0].Outputs
 }
 
