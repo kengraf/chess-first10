@@ -126,7 +126,6 @@
       }
     },
     "Route53RecordSet": {
-      "Condition": "HasRoute53Domain",
       "Type": "AWS::Route53::RecordSet",
       "Properties": {
         "HostedZoneId": { "Ref": "HostedZoneId" },
