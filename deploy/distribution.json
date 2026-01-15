@@ -1,17 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Conditions": {
-    "HasRoute53Domain": {
-      "Fn::Not": [
-        {
-          "Fn::Equals": [
-            { "Ref": "HostedZoneId" },
-            ""
-          ]
-        }
-      ]
-    }
-  },
+
   "Parameters": {
     "DeployName": {
       "Type": "String",
@@ -128,22 +117,12 @@
             }
           ],
           "ViewerCertificate": {
-            "Fn::If": [
-              "HasRoute53Domain",
-              {
                 "AcmCertificateArn": { "Ref": "CertificateArn" },
                 "SslSupportMethod": "sni-only",
                 "MinimumProtocolVersion": "TLSv1.2_2019"
-              },
-              { "CloudFrontDefaultCertificate": true }
-            ]
           },
           "Aliases": {
-            "Fn::If": [
-              "HasRoute53Domain",
-              [{ "Ref": "DomainName" }],
-              { "Ref": "AWS::NoValue" }
-            ]
+              [{ "Ref": "DomainName" }]
           }
         }
       }
