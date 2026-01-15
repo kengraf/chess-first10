@@ -28,11 +28,15 @@
       "Description": "Custom domain name for CloudFront. Leave blank if not using a custom domain.",
       "Default": ""
     },
+    "ApiEndpoint": {
+      "Type": "String",
+      "Description": "Gateway endpoint",
+      "Default": ""
+    },
     "CertificateArn": {
       "Type": "String",
       "Description": "ARN of the ACM certificate for the custom domain. Leave blank if not using a custom domain.",
       "Default": ""
-
     }    
   },
   "Resources": {
