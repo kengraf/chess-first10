@@ -60,8 +60,8 @@ cf() {
       --template-file distribution.json --disable-rollback \
       --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND CAPABILITY_IAM \
       --force-upload --output text --parameter-overrides \
-          S3BUCKET=$S3BUCKET DEPLOYNAME=$DEPLOYNAME DOMAINNAME=$DOMAINNAME \
-          HOSTEDZONEID=$HOSTEDZONEID CERTARN=$CERTARN ApiEndpoint=$ENDPOINT
+          S3bucket=$S3BUCKET Deployname=$DEPLOYNAME Domainname=$DOMAINNAME \
+          HostedZoneId=$HOSTEDZONEID CertificateArn=$CERTARN ApiEndpoint=$ENDPOINT
 
     aws cloudformation describe-stacks --stack-name ${STACK_NAME} | jq .Stacks[0].Outputs
 
