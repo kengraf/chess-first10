@@ -79,7 +79,7 @@
           "Origins": [
             {
               "Id": "S3Origin",
-              "DomainName": "http://chess-first10.s3-website.us-east-2.amazonaws.com",
+              "DomainName": "chess-first10.s3.us-east-2.amazonaws.com",
               "S3OriginConfig": {
                 "OriginAccessIdentity": {
                   "Fn::Sub": "origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}"
