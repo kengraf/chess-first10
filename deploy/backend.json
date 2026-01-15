@@ -66,17 +66,17 @@
       "Type": "AWS::DynamoDB::Table",
       "Properties": {
         "TableName": {
-          "Fn::Join": ["", [{"Ref": "DeployName"}, "SessionTable"]]
+          "Fn::Join": ["", [{"Ref": "DeployName"}, "-SessionTable"]]
         },
         "AttributeDefinitions": [
           {
-            "AttributeName": "email",
+            "AttributeName": "sub",
             "AttributeType": "S"
           }
         ],
         "KeySchema": [
           {
-            "AttributeName": "email",
+            "AttributeName": "sub",
             "KeyType": "HASH"
           }
         ],
