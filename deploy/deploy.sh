@@ -47,14 +47,14 @@ website() {
 }
 
 invalidation() {
-    FRONT_ID=`aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[?contains(DomainName, 'chess-first10.s3.us-east-2.amazonaws.com')]].Id" --output text`
+    FRONT_ID=`aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[?contains(DomainName, 'chess-first10.s3.us-east-2.amazonaws.com')]].Id" --output=text`
     aws cloudfront create-invalidation --distribution-id ${FRONT_ID} --paths "/*"
 }
 
 cf() {
     STACK_NAME="${DEPLOYNAME}-distribution"
     echo "Deploy CloudFormation(CF) Stack=$STACK_NAME..."
-    ENDPOINT=`aws cloudformation describe-stacks --stack-name chess-first10-backend  --query "Stacks[0].Outputs[?OutputKey=='ApiEndpoint'].OutputValue" --output=tex`
+    ENDPOINT=`aws cloudformation describe-stacks --stack-name chess-first10-backend  --query "Stacks[0].Outputs[?OutputKey=='ApiEndpoint'].OutputValue" --output=text`
     echo $ENDPOINT
     aws cloudformation deploy --stack-name ${STACK_NAME} \
       --template-file distribution.json --disable-rollback \
