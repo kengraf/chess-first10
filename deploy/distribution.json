@@ -32,7 +32,12 @@
       "Type": "String",
       "Description": "ARN of the ACM certificate for the custom domain. Leave blank if not using a custom domain.",
       "Default": ""
-    }
+    },
+
+    "ApiEndpoint": {
+      "Type": "string",
+      "Default": ""
+    }    
   },
   "Resources": {
     "BucketPolicy": {
