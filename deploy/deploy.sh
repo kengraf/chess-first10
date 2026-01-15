@@ -52,9 +52,10 @@ invalidation() {
 }
 
 cf() {
-    echo "Deploy CloudFormation(CF) Stack=$DEPLOYNAME..."
-    aws cloudformation deploy --stack-name ${DEPLOYNAME}-distribution \
-      --template-file ${DEPLOYNAME}.yaml --disable-rollback \
+    STACK_NAME="${DEPLOYNAME}-distribution"
+    echo "Deploy CloudFormation(CF) Stack=$STACK_NAME..."
+    aws cloudformation deploy --stack-name ${STACK_NAME} \
+      --template-file distribution.json --disable-rollback \
       --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND CAPABILITY_IAM \
       --force-upload --output text --parameter-overrides \
           S3BUCKET=$S3BUCKET DEPLOYNAME=$DEPLOYNAME DOMAINNAME=$DOMAINNAME \
