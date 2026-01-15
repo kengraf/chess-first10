@@ -38,7 +38,7 @@
     "BucketPolicy": {
       "Type": "AWS::S3::BucketPolicy",
       "Properties": {
-        "Bucket": { "Fn::ImportValue": "S3BucketName" },
+        "Bucket": "chess-first10.kengraf.com",
         "PolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
@@ -50,7 +50,7 @@
                 }
               },
               "Action": "s3:GetObject",
-              "Resource": { "Fn::ImportValue": "S3BucketArn" }
+              "Resource": "arn:aws:s3:::chess-first10.aws"
             }
           ]
         }
@@ -74,7 +74,7 @@
           "Origins": [
             {
               "Id": "S3Origin",
-              "DomainName": { "Fn::ImportValue": "S3BucketRegionalDomainName"  },
+              "DomainName": "http://chess-first10.s3.us-east-2.amazonaws.com",
               "S3OriginConfig": {
                 "OriginAccessIdentity": {
                   "Fn::Sub": "origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}"
