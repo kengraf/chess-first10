@@ -96,7 +96,7 @@
         },
         "Code": {
           "S3Bucket": {"Ref": "S3bucketName"},
-          "S3Key": "v1/function.zip"
+          "S3Key": "/v1/verifyToken.zip"
         },
         "MemorySize": 128,
         "Timeout": 15,
