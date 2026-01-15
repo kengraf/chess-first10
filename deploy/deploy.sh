@@ -61,21 +61,18 @@ cf() {
           S3BUCKET=$S3BUCKET DEPLOYNAME=$DEPLOYNAME DOMAINNAME=$DOMAINNAME \
           HOSTEDZONEID=$HOSTEDZONEID CERTARN=$CERTARN 
 
-    aws cloudformation describe-stacks --stack-name ${DEPLOYNAME} | jq .Stacks[0].Outputs
+    aws cloudformation describe-stacks --stack-name ${STACK_NAME} | jq .Stacks[0].Outputs
 
     echo "Update Gateway CORS settings"
     API_ID=`aws apigatewayv2 get-apis --query "Items[?Name=='nadialin'].ApiId" --output text`
 
     aws apigatewayv2 update-api --api-id ${API_ID} \
         --cors-configuration '{
-            "AllowOrigins": ["https://yourdomain.com"],
+            "AllowOrigins": ["https://chess-first10.kengraf.com"],
             "AllowMethods": ["GET", "POST", "OPTIONS"],
             "AllowHeaders": ["Content-Type"],
             "AllowCredentials": true
             }'
-    NOW=`date -u +%FT%TZ`
-    aws dynamodb put-item --table-name "$DEPLOYNAME-events" \
-        --item "{\"name\": {\"S\": \"$DEPLOYNAME\"},\"startTime\": {\"S\": \"$NOW\"} }"
 }
 
 tests() {
