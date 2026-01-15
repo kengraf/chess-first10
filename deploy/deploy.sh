@@ -92,7 +92,7 @@ backend() {
     --capabilities CAPABILITY_NAMED_IAM \
     --parameter-overrides \
         S3bucketName=${S3BUCKET} \
-        DeployName=${DeployName} \
+        DeployName=${DEPLOYNAME} \
     --output text
   echo "Waiting on ${STACK_NAME} create completion..."
   aws cloudformation describe-stacks --stack-name ${STACK_NAME} | jq .Stacks[0].Outputs
