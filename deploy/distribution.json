@@ -2,19 +2,10 @@
   "AWSTemplateFormatVersion": "2010-09-09",
 
   "Parameters": {
-    "DeployName": {
-      "Type": "String",
-      "Description": "Prefix for resources",
-      "Default": ""
-    },
+
     "HostedZoneId": {
       "Type": "String",
       "Description": "Route 53 Hosted Zone ID. Leave blank if no Route 53 domain is available.",
-      "Default": ""
-    },
-    "DomainName": {
-      "Type": "String",
-      "Description": "Custom domain name for CloudFront. Leave blank if not using a custom domain.",
       "Default": ""
     },
     "ApiEndpoint": {
@@ -121,15 +112,15 @@
                 "SslSupportMethod": "sni-only",
                 "MinimumProtocolVersion": "TLSv1.2_2019"
           },
-          "Aliases": [{ "Ref": "DomainName" }]
+          "Aliases": ["chess-first.kengraf.com"]
         }
       }
     },
     "Route53RecordSet": {
       "Type": "AWS::Route53::RecordSet",
       "Properties": {
-        "HostedZoneId": { "Ref": "HostedZoneId" },
-        "Name": { "Ref": "DomainName" },
+        "HostedZoneId": { "Z04154431JUEDZVN0IZ8F" },
+        "Name": { "chess-first10.kengraf.com" },
         "Type": "A",
         "AliasTarget": {
           "HostedZoneId": "Z2FDTNDATAQYW2",
@@ -141,7 +132,7 @@
   "Outputs": {
     "CloudFrontURL": {
       "Description": "URL of the CloudFront distribution",
-      "Export" : { "Name" : {"Fn::Join": ["-", [{"Ref" : "DeployName"}, "CloudFront", "URL" ]]}},
+      "Export" : { "Name" : {"Fn::Join": ["-", ["chess-first10.kengraf.com", "CloudFront", "URL" ]]}},
       "Value": { "Fn::Join": [ "", ["https://", { "Fn::GetAtt": ["CloudFrontDistribution", "DomainName"] }]]}
     }
   }
