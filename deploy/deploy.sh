@@ -54,12 +54,14 @@ invalidation() {
 cf() {
     STACK_NAME="${DEPLOYNAME}-distribution"
     echo "Deploy CloudFormation(CF) Stack=$STACK_NAME..."
+    ENDPOINT=`aws cloudformation describe-stacks --stack-name chess-first10-backend  --query "Stacks[0].Outputs[?OutputKey=='ApiEndpoint'].OutputValue" --output=tex`
+    echo $ENDPOINT
     aws cloudformation deploy --stack-name ${STACK_NAME} \
       --template-file distribution.json --disable-rollback \
       --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND CAPABILITY_IAM \
       --force-upload --output text --parameter-overrides \
           S3BUCKET=$S3BUCKET DEPLOYNAME=$DEPLOYNAME DOMAINNAME=$DOMAINNAME \
-          HOSTEDZONEID=$HOSTEDZONEID CERTARN=$CERTARN 
+          HOSTEDZONEID=$HOSTEDZONEID CERTARN=$CERTARN APIENDPOINT=$ENDPOINT
 
     aws cloudformation describe-stacks --stack-name ${STACK_NAME} | jq .Stacks[0].Outputs
 
