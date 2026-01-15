@@ -53,7 +53,7 @@ invalidation() {
 
 cf() {
     echo "Deploy CloudFormation(CF) Stack=$DEPLOYNAME..."
-    aws cloudformation deploy --stack-name ${DEPLOYNAME} \
+    aws cloudformation deploy --stack-name ${DEPLOYNAME}-distribution \
       --template-file ${DEPLOYNAME}.yaml --disable-rollback \
       --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND CAPABILITY_IAM \
       --force-upload --output text --parameter-overrides \
@@ -87,7 +87,7 @@ tests() {
 backend() {
   echo "Deploying backend components (apigatewayv2, lambda, dynamodb)"
   STACK_NAME="$DeployName-backend"
-  aws cloudformation deploy --stack-name ${STACK_NAME} \
+  aws cloudformation deploy --stack-name ${DEPLOYNAME}-backend \
     --template-file backend.json \
     --capabilities CAPABILITY_NAMED_IAM \
     --parameter-overrides \
