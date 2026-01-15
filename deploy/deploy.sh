@@ -56,6 +56,12 @@ cf() {
     echo "Deploy CloudFormation(CF) Stack=$STACK_NAME..."
     ENDPOINT=`aws cloudformation describe-stacks --stack-name chess-first10-backend  --query "Stacks[0].Outputs[?OutputKey=='ApiEndpoint'].OutputValue" --output=text`
     echo $ENDPOINT
+        echo $S3BUCKET
+    echo $DEPLOYNAME
+    echo $DOMAINNAME
+    echo $HOSTEDZONEID
+    echo $CERTARN
+    echo $ENDPOINT
     aws cloudformation deploy --stack-name ${STACK_NAME} \
       --template-file distribution.json --disable-rollback \
       --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND CAPABILITY_IAM \
