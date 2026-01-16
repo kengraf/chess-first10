@@ -2,12 +2,6 @@
   "AWSTemplateFormatVersion": "2010-09-09",
 
   "Parameters": {
-
-    "HostedZoneId": {
-      "Type": "String",
-      "Description": "Route 53 Hosted Zone ID. Leave blank if no Route 53 domain is available.",
-      "Default": ""
-    },
     "ApiEndpoint": {
       "Type": "String",
       "Description": "Gateway endpoint",
@@ -119,7 +113,7 @@
     "Route53RecordSet": {
       "Type": "AWS::Route53::RecordSet",
       "Properties": {
-        "HostedZoneId": { "Z04154431JUEDZVN0IZ8F" },
+        "HostedZoneId": "Z04154431JUEDZVN0IZ8F",
         "Name": { "chess-first10.kengraf.com" },
         "Type": "A",
         "AliasTarget": {
