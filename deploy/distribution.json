@@ -106,7 +106,7 @@
                 "SslSupportMethod": "sni-only",
                 "MinimumProtocolVersion": "TLSv1.2_2019"
           },
-          "Aliases": ["chess-first.kengraf.com"]
+          "Aliases": ["chess-first10.kengraf.com"]
         }
       }
     },
