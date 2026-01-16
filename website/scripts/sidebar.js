@@ -3,6 +3,7 @@ import { _globals } from './first10.js';
 
 import * as GameData from './gameData.js';
 import * as Board from './board.js';
+import * as First10 from './first10.js';
         
  export function init() {
     // Start by showing the newgame options
@@ -92,7 +93,7 @@ export function highlightCrown(crown) {
 
 
 function copyPGN() {
-  const input = document.getElementById("pgn");
+  const input = _globals.PGN;
   navigator.clipboard.writeText(input.value).then(() => {
     alert("Copied!");
   });
@@ -131,10 +132,16 @@ document.getElementById('select-black').addEventListener('click', () => {
     pickColor('black');
 });
  
+document.getElementById('copyPGN-btn').addEventListener('click', () => {
+    copyPGN();
+});
+ 
 
 
 document.getElementById('profileBtn').addEventListener('click', () => {
     show("container-sb-middle","sb-body-result","flex");
+    if( _globals.userCookie ==  "" )
+        First10.showGoogleSigninButton()
 });
 document.getElementById('settingsBtn').addEventListener('click', () => {
     show("container-sb-middle","sb-body-settings","flex");

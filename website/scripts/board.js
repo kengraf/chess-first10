@@ -133,6 +133,45 @@ function dropEvent(e) {
     return null;
 }
 
+
+function dragControl(event) {
+    // constrain dragging to board
+    const dragContainer = document.getElementById('board');
+
+    const dragPiece = event.currentTarget;
+    let shiftX = event.clientX - dragPiece.getBoundingClientRect().left;
+    let shiftY = event.clientY - dragPiece.getBoundingClientRect().top;
+
+    function moveAt(pageX, pageY) {
+        let newX = pageX - shiftX - dragContainer.getBoundingClientRect().left;
+        let newY = pageY - shiftY - dragContainer.getBoundingClientRect().top;
+
+        // Constraints
+        const maxX = dragContainer.clientWidth - dragPiece.offsetWidth;
+        const maxY = dragContainer.clientHeight - dragPiece.offsetHeight;
+
+        // Clamp values between 0 and Max
+        newX = Math.max(0, Math.min(newX, maxX));
+        newY = Math.max(0, Math.min(newY, maxY));
+
+        dragPiece.style.left = newX + 'px';
+        dragPiece.style.top = newY + 'px';
+        console.log(`X=${newX} Y=${newY}`);
+    }
+
+    function onMouseMove(event) {
+        moveAt(event.pageX, event.pageY);
+        console.log(`X=${event.pageX} Y=${event.pageY}`);
+    }
+
+    document.addEventListener('mousemove', onMouseMove);
+
+    document.onmouseup = function() {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.onmouseup = null;
+    };
+};
+
 function clickEvent(e) {
     _audioResult = null;
     if( _activePiece ) {
@@ -521,7 +560,7 @@ function identifyPiece() {
     }
     
     if( _move.disambiguate != "" ) {
-        // Use disabigate notatoion to filter pieces
+        // Use disabigate notation to filter pieces
         for( let i=0; i<legalPieces.length; ) {
             if( legalPieces[i].alpha.includes(_move.disambiguate) == false )
                 // Not correct rank or file
@@ -556,18 +595,18 @@ function castleAttempt( move ) {
         // Kingside attempt
         if( (move.WorB == "b") && _game.castling.includes("k") )
             // _game.castling is updated when the move is made
-            return "0-0";
+            return "O-O";
         if( (move.WorB == "w") && _game.castling.includes("K") )
-            return "0-0";
+            return "O-O";
     }
       
     if( move.endSquare.alpha[0] == "c" ) {
         // Queenside attempt
         if( (move.WorB == "b") && _game.castling.includes("q") )
             // _game.castling is updated when the move is made
-            return "0-0-0";
+            return "O-O-O";
         if( (move.WorB == "w") && _game.castling.includes("Q") )
-            return "0-0-0";
+            return "O-O-O";
     }
       
 
@@ -576,7 +615,7 @@ function castleAttempt( move ) {
 
 function moveCastle(notation) {
     // Handle special castling notation
-    if (notation.includes("0-0-0") || notation.toLowerCase().includes("o-o-o")) {
+    if (notation.includes("O-O-O")) {
         // Queen side castle
         if( _move.WorB == "b" ) {
             if( _game.castling.includes("q") ) {
@@ -593,7 +632,7 @@ function moveCastle(notation) {
         }
         return;
     }
-    if (notation.includes("0-0") || notation.toLowerCase().includes("o-o")) {
+    if (notation.includes("O-O")) {
         // King side castle
         if( _move.WorB == "b" ) {
             if( _game.castling.includes("k") ) {
@@ -828,6 +867,8 @@ function pieceAdd( piece, square) {
     img.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("text/plain", e.currentTarget.id);
         e.dataTransfer.setDragImage(img, _squareSize/2,_squareSize/2);
+//TBD bind drags to the board
+//TBD   dragControl( e );
         _activePiece = pickedValidPiece( e.currentTarget );
         if( _activePiece ) {
             highlightSquare( e.currentTarget, "drag-overlay" );
@@ -994,7 +1035,7 @@ function userMove( move = _activePiece ) {
     if( _moveTos.includes(move.endSquare.alpha) == false ) {
         // invalid move
         _audioResult = _audioIllegal;
-        _activePiece = null;
+        resetClickDrag();
         return null;
     }
 
@@ -1021,7 +1062,7 @@ function userMove( move = _activePiece ) {
             checked = "#";
     }
     note += checked;
-    _activePiece = null;
+    resetClickDrag();
     return note;
 }
 

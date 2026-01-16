@@ -270,14 +270,14 @@ h1, h2, h3, p {
 }
 
 .full-page-splash {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(8px);
-  display: grid;
   place-items: center; 
   z-index: 9999;
 }
