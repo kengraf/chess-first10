@@ -156,10 +156,14 @@ export function showGoogleSigninButton() {
 		client_id: '1030435771551-qnikf54b4jhlbdmm4bkhst0io28u11s4.apps.googleusercontent.com',
 		callback: handleCredentialResponse,
 	});
-	google.accounts.id.prompt((notification) => {
-		console.log('Prompt notification:', notification);
+	google.accounts.id.renderButton(
+		document.getElementById("googleSignInButton"), // Make sure this element exists
+		{ theme: "outline", size: "large" }
+	);
+//	google.accounts.id.prompt((notification) => {
+//		console.log('Prompt notification:', notification);
 		// Check notification.isNotDisplayed() and notification.getNotDisplayedReason()
-	});
+//	});
 }
 
 // Kick off execution
