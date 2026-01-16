@@ -126,8 +126,14 @@
   "Outputs": {
     "CloudFrontURL": {
       "Description": "URL of the CloudFront distribution",
-      "Export" : { "Name" : {"Fn::Join": ["-", ["chess-first10.kengraf.com", "CloudFront", "URL" ]]}},
-      "Value": { "Fn::Join": [ "", ["https://", { "Fn::GetAtt": ["CloudFrontDistribution", "DomainName"] }]]}
+      "Export": { 
+        "Name": {
+          "Fn::Join": ["-", ["chess-first10", "kengraf", "com", "CloudFront", "URL"]]
+        }
+      },
+      "Value": { 
+        "Fn::Join": ["", ["https://", {"Fn::GetAtt": ["CloudFrontDistribution", "DomainName"]}]]
+      }
     }
   }
 }
