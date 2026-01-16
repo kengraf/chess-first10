@@ -148,11 +148,18 @@ function handleCredentialResponse(response) {
 
 // Render the Google Sign-In button
 export function showGoogleSigninButton() {
+	 if (typeof google === 'undefined') {
+		window.addEventListener('load', showGoogleSigninButton);
+		return;
+	}
 	google.accounts.id.initialize({
 		client_id: '1030435771551-qnikf54b4jhlbdmm4bkhst0io28u11s4.apps.googleusercontent.com',
 		callback: handleCredentialResponse,
 	});
-	google.accounts.id.prompt();
+	google.accounts.id.prompt((notification) => {
+		console.log('Prompt notification:', notification);
+		// Check notification.isNotDisplayed() and notification.getNotDisplayedReason()
+	});
 }
 
 // Kick off execution
