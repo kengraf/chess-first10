@@ -29,7 +29,7 @@
                 }
               },
               "Action": "s3:GetObject",
-              "Resource": "arn:aws:s3:::chess-first10.aws"
+              "Resource": "arn:aws:s3:::chess-first10.aws/*"
             }
           ]
         }
