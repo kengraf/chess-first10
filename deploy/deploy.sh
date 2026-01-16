@@ -44,6 +44,7 @@ website() {
     pushd ../website
     aws s3 sync . s3://$S3BUCKET/
     popd
+    invalidation
 }
 
 invalidation() {
