@@ -153,7 +153,11 @@ export function showGoogleSigninButton() {
         callback: handleCredentialResponse,
 		use_fedcm_for_prompt: true,
     });
-    google.accounts.id.prompt(); 
+    google.accounts.id.prompt((notification) => {
+	    if (notification.isNotDisplayed()) {
+	        console.log("Reason prompt did not show:", notification.getNotDisplayedReason());
+	    }
+	}); 
 }
 
 // Kick off execution
