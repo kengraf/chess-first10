@@ -153,25 +153,17 @@ export function showGoogleSigninButton() {
         callback: handleCredentialResponse,
 		use_fedcm_for_prompt: true,
     });
-    google.accounts.id.prompt((notification) => {
-        if (notification.isSkippedMoment()) {
-            console.log("Skipped reason:", notification.getSkippedReason());
-	    }
-	}); 
+    google.accounts.id.prompt(); 
 }
-    // Render the Google Sign-In button
-  window.onload = function () {
-    google.accounts.id.initialize({
-      client_id: '1030435771551-qnikf54b4jhlbdmm4bkhst0io28u11s4.apps.googleusercontent.com',
-      callback: handleCredentialResponse,
-    });
-    google.accounts.id.renderButton(
-      document.getElementById('GoogleButtonDiv'),
-      { theme: 'outline', size: 'large' } // Customization options
-    );
-    google.accounts.id.prompt(); // Optional auto-popup
-  };
+// Render the Google Sign-In button
+window.onload = function () {
+	google.accounts.id.initialize({
+	  client_id: '1030435771551-qnikf54b4jhlbdmm4bkhst0io28u11s4.apps.googleusercontent.com',
+	  callback: handleCredentialResponse,
+	});
+	google.accounts.id.prompt();
+};
 
 // Kick off execution
 //window.addEventListener('load', init );
-// init();
+init();
