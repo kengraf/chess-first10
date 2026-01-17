@@ -273,12 +273,12 @@ h1, h2, h3, p {
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(8px);
   display: none;
+  height: 100vh;
+  left: 0;
+  place-items: center; 
   position: fixed;
   top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  place-items: center; 
+  width: 60%;
   z-index: 9999;
 }
 
