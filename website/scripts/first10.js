@@ -151,6 +151,7 @@ export function showGoogleSigninButton() {
     google.accounts.id.initialize({
         client_id: '1030435771551-qnikf54b4jhlbdmm4bkhst0io28u11s4.apps.googleusercontent.com',
         callback: handleCredentialResponse,
+		use_fedcm_for_prompt: true,
     });
     google.accounts.id.prompt(); 
 }
