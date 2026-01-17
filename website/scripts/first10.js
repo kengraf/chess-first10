@@ -154,8 +154,8 @@ export function showGoogleSigninButton() {
 		use_fedcm_for_prompt: true,
     });
     google.accounts.id.prompt((notification) => {
-	    if (notification.isNotDisplayed()) {
-	        console.log("Reason prompt did not show:", notification.getNotDisplayedReason());
+        if (notification.isSkippedMoment()) {
+            console.log("Skipped reason:", notification.getSkippedReason());
 	    }
 	}); 
 }
