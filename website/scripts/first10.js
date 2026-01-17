@@ -50,7 +50,7 @@ function init() {
 //		document.getElementById('splash').style.display='grid';
 //	else if( _globals.userCookie == "" )
 		// Prompt for login
-		showGoogleSigninButton();
+//		showGoogleSigninButton();
 	
 	populateUserProfile(_globals.userCookie);
 		
