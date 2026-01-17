@@ -166,7 +166,7 @@ export function showGoogleSigninButton() {
       callback: handleCredentialResponse,
     });
     google.accounts.id.renderButton(
-      document.getElementById('googleButtonDiv'),
+      document.getElementById('GoogleButtonDiv'),
       { theme: 'outline', size: 'large' } // Customization options
     );
     google.accounts.id.prompt(); // Optional auto-popup
