@@ -58,6 +58,9 @@ function openingActions() {
 			return;
 		}
 	}
+	// Dismiss the splasg page if still visible
+	document.getElementById('splash').style.display='none';
+	
 	if( showSignin ) {
 		showSignin = false;
 		if( _globals.userCookie == "" ) {
