@@ -139,9 +139,11 @@ document.getElementById('copyPGN-btn').addEventListener('click', () => {
 
 
 document.getElementById('profileBtn').addEventListener('click', () => {
-    show("container-sb-middle","sb-body-result","flex");
     if( _globals.userCookie ==  "" )
         First10.showGoogleSigninButton()
+   else
+        show("container-sb-middle","sb-body-result","flex");
+
 });
 document.getElementById('settingsBtn').addEventListener('click', () => {
     show("container-sb-middle","sb-body-settings","flex");
