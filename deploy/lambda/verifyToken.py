@@ -34,8 +34,7 @@ def handler(event, context):
         user_uuid = str(uuid.uuid4())
         name = email.split('@')[0]
         pic_url = idinfo['picture']
-        img_bytes = resp.content        
-
+       
         # Update the hunters table       
         table.put_item(Item={"name":name, "email": email, 
                              "pictureurl": pic_url,
@@ -45,12 +44,20 @@ def handler(event, context):
         cookie1 = f"session={user_uuid}; Secure=true; SameSite=Lax; Path=/"
         cookie2 = f"user={sub}; Secure=true; SameSite=Lax; Path=/; Max-Age=31536000"
         return {
+            "cookies": [
+                f"session={user_uuid}; Secure=true; SameSite=Lax; Path=/",
+                f"user={sub}; Secure=true; SameSite=Lax; Path=/; Max-Age=31536000"
+            ],
+            "isBase64Encoded": False,
             "statusCode": 200,
-            "headers": { "Content-Type": "application/json",
-                       "Set-Cookie": cookie1, "Set-Cookie": cookie2  },
-            "body": json.dumps({"message": f"Session created{cookie}"})
-        }
-    
+            "headers": {
+                "Content-Type": "application/json",
+                "Cache-Control": 'no-cache="Set-Cookie"'
+            },
+            "body": json.dumps({"message": "Session created", "idToken": token, "uuid":user_uuid})
+            }
+
+
     except ValueError as e:
         print(f"Error {e}")
         return {
