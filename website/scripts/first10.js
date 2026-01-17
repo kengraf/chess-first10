@@ -45,10 +45,10 @@ function init() {
 	// Generate sidebar and UI elements
 	Sidebar.init('container-sb');
 	
-	if( _globals.sessionCookie == "" )
+//	if( _globals.sessionCookie == "" )
 		// Show splash page
-		document.getElementById('splash').style.display='grid';
-	else if( _globals.userCookie == "" )
+//		document.getElementById('splash').style.display='grid';
+//	else if( _globals.userCookie == "" )
 		// Prompt for login
 		showGoogleSigninButton();
 	
