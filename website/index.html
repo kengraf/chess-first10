@@ -166,8 +166,21 @@ logout
 
 <script src="scripts/confetti.min.js" defer></script>
 <script src="https://accounts.google.com/gsi/client"></script>
-
-<!-- Page initialization done here -->
+<script>
+    // Render the Google Sign-In button
+  window.onload = function () {
+    google.accounts.id.initialize({
+      client_id: '1030435771551-qnikf54b4jhlbdmm4bkhst0io28u11s4.apps.googleusercontent.com',
+      callback: handleCredentialResponse,
+    });
+    google.accounts.id.renderButton(
+      document.getElementById('buttonDiv'),
+      { theme: 'outline', size: 'large' } // Customization options
+    );
+    google.accounts.id.prompt(); // Optional auto-popup
+  };
+</script>
+    <!-- Page initialization done here -->
 <script type="module" src="scripts/first10.js"></script>
 
 </body>
