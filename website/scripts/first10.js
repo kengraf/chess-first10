@@ -42,18 +42,38 @@ function init() {
 	// Generate data structures
 	GameData.processNodesURL('/data/first10.nodes');
 
+	// Run through the initial user actions
+	openingActions();
+}
+
+let showSplash = true;
+let showSignin = true;
+function openingActions() {
+	
+	if( showSplash ) {
+		showSplash = false;
+		if( _globals.sessionCookie == "" ) {
+			// Show splash page, the button ot dismiss recurses
+			document.getElementById('splash').style.display='grid';
+			return;
+		}
+	}
+	if( showSignin ) {
+		showSignin = false;
+		if( _globals.userCookie == "" ) {
+			// Prompt for login
+			showGoogleSigninButton();
+			return;
+		}
+	}
+	
+	if( _globals.userCookie != "" )
+		populateUserProfile(_globals.userCookie);
+
 	// Generate sidebar and UI elements
 	Sidebar.init('container-sb');
 	
-//	if( _globals.sessionCookie == "" )
-		// Show splash page
-//		document.getElementById('splash').style.display='grid';
-//	else if( _globals.userCookie == "" )
-		// Prompt for login
-//		showGoogleSigninButton();
-	
-	populateUserProfile(_globals.userCookie);
-		
+
 }
 
 
@@ -112,10 +132,10 @@ function dataFetch() {
 function checkSessionCookies() {
 	const cookies = document.cookie;
 	let c = cookies.split('; ').find(row => row.startsWith('session='));
-	if( c ) _globals.sessionCoookie = cookieString.split('=')[1];
+	if( c ) _globals.sessionCoookie = c.split('=')[1];
 	
 	c = cookies.split('; ').find(row => row.startsWith('user='));
-	if( c ) _globals.userCoookie = cookieString.split('=')[1];
+	if( c ) _globals.userCoookie = c.split('=')[1];
 }
 
 
@@ -138,12 +158,12 @@ function handleCredentialResponse(response) {
 	})
 	.then(data => {
 		console.log('Data fetched:', data);
-		const sub = `uuid=${data["uuid"]}&idToken=${data["idToken"]}`;
-		window.location.href = `/dashboard.html?${sub}`;
+		_globals.userCookie = data["uuid"];
 	})
 	.catch(error => {
 		console.error('Error verifying token:', error);
 	});
+	openingActions();
 }
 
 // Render the Google Sign-In button
@@ -155,6 +175,8 @@ export function showGoogleSigninButton() {
     });
     google.accounts.id.prompt(); 
 }
+
+/*
 // Render the Google Sign-In button
 window.onload = function () {
 	google.accounts.id.initialize({
@@ -163,6 +185,7 @@ window.onload = function () {
 	});
 	google.accounts.id.prompt();
 };
+*/
 
 // Kick off execution
 //window.addEventListener('load', init );
