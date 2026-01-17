@@ -165,10 +165,10 @@ export function showGoogleSigninButton() {
       client_id: '1030435771551-qnikf54b4jhlbdmm4bkhst0io28u11s4.apps.googleusercontent.com',
       callback: handleCredentialResponse,
     });
-    google.accounts.id.renderButton(
-      document.getElementById('buttonDiv'),
-      { theme: 'outline', size: 'large' } // Customization options
-    );
+//    google.accounts.id.renderButton(
+//      document.getElementById('buttonDiv'),
+//      { theme: 'outline', size: 'large' } // Customization options
+//    );
     google.accounts.id.prompt(); // Optional auto-popup
   };
 
