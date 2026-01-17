@@ -148,13 +148,12 @@ function handleCredentialResponse(response) {
 
 // Render the Google Sign-In button
 export function showGoogleSigninButton() {
-	google.accounts.id.initialize({
-		client_id: '1030435771551-qnikf54b4jhlbdmm4bkhst0io28u11s4.apps.googleusercontent.com',
-		callback: handleCredentialResponse,
-	});
-	google.accounts.id.prompt();
+    google.accounts.id.initialize({
+        client_id: '1030435771551-qnikf54b4jhlbdmm4bkhst0io28u11s4.apps.googleusercontent.com',
+        callback: handleCredentialResponse,
+    });
+    google.accounts.id.prompt(); 
 }
-
 
 // Kick off execution
 window.addEventListener('load', init );
