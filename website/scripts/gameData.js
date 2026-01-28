@@ -12,7 +12,7 @@ export function getOpening() {
 	for (var i = 0; i < 2; i += 1) {
 		rand += Math.random();
 	}
-	let steps = Math.floor( (rand/2)*(max-min+1) );
+	let steps = Math.floor( (rand/2)*(max-min) );
 	steps = (steps+min)*2;
 
 	
@@ -33,6 +33,7 @@ export function getOpening() {
 
 	// TBD use ECO
 	// TBD use named opening
+	Sidebar.displayGamesCount();
 	return randomGame(steps);
 }
 
@@ -46,25 +47,25 @@ function add_game_step(notation) {
 	console.log(_globals.PGN);
 }
 
-export function updateNode(notation) {
-
+export function setPeekSteps(node) {
 	_globals.peekSteps = [];
-	for (const [step, index] of Object.entries(NODES[_globals.nextNode].steps)) {
+	for (const [step, index] of Object.entries(NODES[node].steps)) {
 		let fStep = {"Move":step, "Index":index,
 		"Count":NODES[index].count};
 		_globals.peekSteps.push(fStep);
 	}
 	_globals.peekSteps.sort((a, b) => b.Count - a.Count);
-	console.log(_globals.peekSteps);
+}
 
+export function updateNode(notation) {
+
+	setPeekSteps(_globals.nextNode);
 	add_game_step(notation);
 	if( !(notation in NODES[_globals.nextNode].steps)) {
 		// Bad move choice by user
 		return;
 	}
 	_globals.nextNode = NODES[_globals.nextNode].steps[notation];
-	
-
 	console.log(_globals.nextNode);
 }
 	
@@ -156,6 +157,26 @@ export async function processNodesURL(url) {
 	} catch (error) {
 		console.error("Error fetching or processing URL:", error);
 		throw error;
-	}	
+	}
+	Sidebar.displayGamesCount();  // sets game count in sidebar
 	return NODES;
 }
+
+/* --------------- ECO data management ---------- */
+const _eco = {};
+async function loadOpenings() {
+	try {
+		const response = await fetch('data/eco-list.json');
+		let openings = await response.json();
+		
+		console.log(`Loaded ${openings.length} openings`);
+		return openings;
+		
+	} catch (error) {
+		console.error('Error loading openings:', error);
+		return [];
+	}
+}
+
+// Usage:
+_eco.openings = await loadOpenings();

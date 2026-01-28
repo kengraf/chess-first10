@@ -5,24 +5,64 @@ import * as GameData from './gameData.js';
 import * as Board from './board.js';
 import * as First10 from './first10.js';
         
- export function init() {
-    // Start by showing the newgame options
-    pickColor("random");
+export function init() {
+     populateUserProfile();
+     
+     // Start by showing the newgame options
+    pickColor('random');
     updateSlider();
+    loadChessOpenings();
 
     minSlider.addEventListener('input', updateSlider);
     maxSlider.addEventListener('input', updateSlider);
 
-    show("container-sb-middle","sb-body-settings","flex");
+    show("container-sb-body","sb-body-settings","flex");
  }
 
 let gamesPlayed = 0;
 let gradeColors = {"best":"Blue", "good":"Green",
 "ok":"Green", "unpopular":"Yellow", "unseen":"Red"};
+let sessionResults = {"blue":0, "green":0, "yellow":0, "red":0};
+let sessionHistory = [];
+let yourMove = "";
+let bestMove = "";
 
-export function setResultsTable(notation) {
+export function recordResult(notation){
+    let grade = setResultsTable(notation);
+    sessionResults[grade] += 1;
+    let a = { "${_globals.PGN}": grade };
+    sessionHistory.push(a);
+    showTotalsBar();
+ }
+
+function explainMove( mode ) {
+    // Drop user move from game PGN
+    const last = _globals.PGN.lastIndexOf(' '); 
+    const pgn = _globals.PGN.substring(0, last);
+
+    
+    let url = "https://www.google.com/search?q=explain why move ";
+    let move = "";
+    let modifier = "";
+    if( mode == "best" ) {
+        move = bestMove; 
+        modifier = " is the best move after: ";
+    } else {
+        move = yourMove; 
+        modifier = " is aa sub-optimal move after: ";   
+    }
+    window.open( url+move+modifier+pgn, '_blank' );
+}
+
+
+function addToSession(grade, pgn) {
+    updateSidebarSession(grade);
+}
+
+
+function setResultsTable(notation) {
     const data = _globals.peekSteps;
-    let gradeId = "resultRed";
+    let gradeId = "red";
     let bestPercent = 0;
     gamesPlayed = data.reduce((sum, item) => sum + item.Count, 0);
 
@@ -35,18 +75,18 @@ export function setResultsTable(notation) {
 
       if( notation == item.Move) {
         if (item.percent == bestPercent)
-            gradeId = "resultBlue";
+            gradeId = "blue";
         else if (item.percent+5 > bestPercent)
-            gradeId = "resultGreen";
+            gradeId = "green";
         else if (item.percent > 5 )
-            gradeId = "resultGreen";
+            gradeId = "green";
         else
-            gradeId = "resultYellow";
+            gradeId = "yellow";
         }
     });
           
     const thead = document.querySelector("#resultTable thead");
-    thead.innerHTML = `<tr><th></th><th>Move</th><th>Percentage of<br>${gamesPlayed*3} games</th></tr>`;
+    thead.innerHTML = `<tr><th></th><th>Move</th><th>Percentage of<br>${gamesPlayed} games</th></tr>`;
         
     const tbody = document.querySelector("#resultTable tbody");
     tbody.innerHTML = "";
@@ -62,12 +102,16 @@ export function setResultsTable(notation) {
       });
     document.getElementById("copyPGN").value = _globals.PGN;
 
-    show("messageBox",gradeId,"block");
-    show("container-sb-middle","sb-body-result","flex");
-        
-    if(notation == _globals.peekSteps[0].Move) {
+    show("messageBox","result-"+gradeId,"block");
+    show("container-sb-body","sb-body-result","flex");
+    
+    _globals.bestMove = _globals.peekSteps[0].Move
+    if(notation == _globals.bestMove) {
         triggerFireworks();
     }
+    yourMove = notation;
+
+    return gradeId;
 }
 
 
@@ -85,7 +129,7 @@ export function highlightCrown(crown) {
 
     for (const e of elements) {
         if(e.id == `select-${crown}` )
-            e.style.border = "4px solid var(--color-yellow-muted)";
+            e.style.border = "4px solid var(--color-yellow-vibrant)";
         else
             e.style.border = 'none';
     }
@@ -93,9 +137,8 @@ export function highlightCrown(crown) {
 
 
 function copyPGN() {
-  const input = _globals.PGN;
-  navigator.clipboard.writeText(input.value).then(() => {
-    alert("Copied!");
+  navigator.clipboard.writeText(_globals.PGN).then(() => {
+    alert("PGN copied!");
   });
 }
 
@@ -121,6 +164,32 @@ function newGame() {
     }
 }
 
+function populateUserProfile() {
+    // Hidden login, show profile
+    const loginDiv = document.getElementById('loginDiv');
+    loginDiv.style.display = "none";
+    
+    const img = document.getElementById('profileImage');
+    img.style.display = "block";
+    
+    const imageUrl = _globals.user["pictureurl"];
+    img.src = imageUrl;
+    img.class = "profileImage";
+    img.alt = "Show personal history";
+   
+    img.addEventListener('load', () => {
+        console.log('Image loaded successfully');
+    });
+
+    img.addEventListener('error', (e) => {
+        console.error('Image failed to load:', imageUrl, e);
+    });
+    
+    img.addEventListener("click", () => {
+        show("container-sb-body","sb-body-profile","flex");
+    });
+}
+
   
 document.getElementById('select-white').addEventListener('click', () => {
     pickColor('white');
@@ -132,30 +201,116 @@ document.getElementById('select-black').addEventListener('click', () => {
     pickColor('black');
 });
  
+document.getElementById('bestMove').addEventListener('click', () => {
+    explainMove("best");
+});
+
+document.getElementById('yourMove').addEventListener('click', () => {
+    explainMove("yours" );
+});
+
 document.getElementById('copyPGN-btn').addEventListener('click', () => {
     copyPGN();
 });
  
+document.getElementById('splash-button').addEventListener('click', () => {
+    First10.openingActions();
+});
+ 
 
 
-document.getElementById('profileBtn').addEventListener('click', () => {
+document.getElementById('loginDiv').addEventListener('click', () => {
     if( _globals.userCookie ==  "" )
         First10.showGoogleSigninButton()
    else
-        show("container-sb-middle","sb-body-result","flex");
+        show("container-sb-body","sb-body-result","flex");
 
 });
 document.getElementById('settingsBtn').addEventListener('click', () => {
-    show("container-sb-middle","sb-body-settings","flex");
+    show("container-sb-body","sb-body-settings","flex");
+});
+document.getElementById('newGameBtn').addEventListener('click', () => {
+    newGame();
 });
 
 document.getElementById('select-white').addEventListener('click', () => {
     pickColor('white');
 });
-document.getElementById('newGameBtn').addEventListener('click', () => {
-    show("container-sb-middle","sb-body-playing","flex");
-    newGame(); // Start a new game
+document.getElementById('toggleReplayGames').addEventListener('click', () => {
+    _globals.replayGames = !_globals.replayGames;
 });
+document.getElementById('toggleSounds').addEventListener('click', () => {
+    _globals.playSounds = !_globals.playSounds;
+});
+document.getElementById('toggleHighlight').addEventListener('click', () => {
+    _globals.showHighlights = !_globals.showHighlights;
+});
+document.getElementById('toggleArrows').addEventListener('click', () => {
+    _globals.showBestArrow = !_globals.showBestArrow;
+});
+document.getElementById('themeToggle').addEventListener('change', function() {
+    const l = document.getElementById('themeLeftText');
+    const r = document.getElementById('themeRightText');
+    if(this.checked) {
+        _globals.boardTheme = "Modern";
+        l.className = "textOff";
+        r.className = "right-textOn";
+    } else {
+        _globals.boardTheme = "Classic";
+        l.className = "left-textOn";
+        r.className = "textOff";
+    }
+    Board.initializeBoard();
+});
+
+async function loadChessOpenings() {
+    const dropdown = document.getElementById('opening-names-dropdown');
+    const url = 'data/opening-names-eco.json';
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        data.forEach(obj => {
+            const [name, code] = Object.entries(obj)[0];
+
+            // Create a new option element
+            const option = document.createElement('option');
+            option.text = name;   // e.g., "Caro-Kann"
+            option.value = code;  // e.g., "B10-B19"
+            
+            dropdown.add(option);
+        });
+    } catch (error) {
+        console.error('Error fetching chess data:', error);
+    }
+    dropdown.addEventListener('change', function() {
+        const ecoCode = this.value;
+        const ecoName = this.options[this.selectedIndex].text;
+    
+        if (selectedCode) {
+            handleNameSelection(ecoName, ecoCode);
+        }
+    });
+}
+
+function handleNameSelection(name, code) {
+    console.log(`User selected: ${name} with code range: ${code}`);
+    
+    // TBD 
+    if (name === "Random") {
+        alert("Choosing a random opening...");
+    }
+}
+
+function explainWithGoogle() {
+    const query = "why is " + bestMove + " the best move after " + _globals.PGN;
+
+    const url = 'https://www.google.com/search?q=' + encodeURIComponent(query);
+
+    // Open the new window/tab
+    window.open(url, '_blank');
+}
 
 function triggerFireworks() {
     confetti({ particleCount: 100,  spread: 70,
@@ -212,4 +367,73 @@ function updateSlider() {
     progressBar.style.right = (100 - maxPercent) + '%';
 }
 
+// -------------------- ECO input -----------------
+    const ecoInput = document.getElementById('ecoInput');
+    ecoInput.addEventListener('input', updateValidation);
 
+    function validateInput(value) {
+      const pattern = /^[A-Ea-e]\d{2}$/;
+      return pattern.test(value);
+    }
+
+    function updateValidation() {
+      const value = ecoInput.value;
+      
+      if( (value === '') || validateInput(value)) {
+        _eco.selected = value;
+        }
+    }
+
+/* TBD
+    input.addEventListener('blur', updateValidation);
+
+    // Initial validation
+    updateValidation();
+*/
+export function displayGamesCount(node = 0) {
+    GameData.setPeekSteps(0);
+    const data = _globals.peekSteps;
+    let cnt = data.reduce((sum, item) => sum + item.Count, 0);
+    let label = document.getElementById( "gamesCount");
+    label.innerHTML = `${cnt.toLocaleString()} games available`;
+    
+/*
+    data.forEach(opening => {
+      console.log(`${opening.eco}: ${opening.name}`);
+      console.log(`Moves: ${opening.moves}`);
+    });
+    
+    // Example: Find a specific opening by ECO code
+    const a12 = data.find(opening => opening.eco === 'A12');
+    console.log(a12);
+    
+    // Example: Filter by name
+    const englishOpenings = data.filter(opening => 
+      opening.name.includes('English')
+    );
+    console.log(englishOpenings);
+*/
+}
+
+/* ----- Results bar -----*/
+function showTotalsBar() {
+    const total = Object.values(sessionResults).reduce((sum, val) => sum + val, 0);
+
+    const bar = document.getElementById('resultsBar');
+    bar.innerHTML = '';
+    Object.entries(sessionResults).forEach(([color, value]) => {
+      if (value > 0) {
+        const percentage = (value / total) * 100;
+        
+        const segment = document.createElement('div');
+        segment.className = 'resultsSegment';
+        segment.style.backgroundColor = color;
+        if( color == "yellow" )
+            segment.style.color = "black";
+        segment.style.width = percentage + '%';
+        segment.textContent = value;
+        segment.title = `${color}: ${value} (${percentage.toFixed(1)}%)`;
+        bar.appendChild(segment);
+      }
+    });
+}

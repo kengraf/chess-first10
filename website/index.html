@@ -28,7 +28,7 @@
             </ul>
           </div>
         </div>
-        <button class="splash-button" onclick="openingActions()">Let's get started!</button>
+        <button class="splash-button" id="splash-button">Let's get started!</button>
   </div>
 </div>
 
@@ -41,94 +41,160 @@
 
 <!-- Visual sidebar (sb) elements generated in javascript -->
     <div id="sb-container" class="container-sb">
-      <div id="sb-header" class="container-sb-top">
+      <div id="sb-header" class="container-sb-header">
         <div class="container-row">
-          <div><p class="title">First 10</p></div>
-          <div><button id="profileBtn" class="sb-button button">login</button>
+          <div id="loginDiv" class="profile-div">
+            <button id="loginBtn" class="sb-button button">login</button>
           </div>
+          <div id="profileDiv" class="profile-div" >
+            <image id="profileImage" class="sb-button button picture"></image>
+          </div>
+          <button id="newGameBtn" class="sb-button button" style="flex:3">
+          NEW GAME</button>
           <div><button id="settingsBtn" class="sb-button nutton">&#8230;</button>
           </div>
         </div>
       </div>
-      <div id="sb-body-settings" class="container-sb-middle">
-          <div class="container-row">
-            <div class="settings-label">
-            <p>Color preference White,&nbsp;Random,&nbsp;or&nbsp;Black</p>
-            </div>
-            <div class="container-row">
-              <div id="select-white" class="crown-container">
-                <img src="/images/wk.png" title="Play White" class="crown-icon">
-              </div>
-              <div id="select-random" class="crown-container">
-                <img src="/images/rk.png" title="Random Color" class="crown-icon crown-selected">
-              </div>
-              <div id="select-black" class="crown-container" >
-                <img src="/images/bk.png" title="Play Black" class="crown-icon">
-              </div>
-            </div>
+      <div id="sb-body-settings" class="container-sb-body">
+        <hr>
+
+        <div class="sb-bodyPart">
+          <label>Openings: </label>
+          <select id="opening-names-dropdown">
+            <option value="" disabled selected>-- Select opening --</option>
+          </select>
+        </div>
+        <div class="sb-bodyPart">
+            <label for="ecoInput">ECO Code (A00-E99):</label>
+            <input 
+              type="text" 
+              style="width:60px;"
+              id="ecoInput" 
+              value="" 
+              maxlength="3"
+              placeholder="Random"
+            />
+        </div> 
+        <div class="sb-bodyPart">
+          <label id="gamesCount">?? games available</label>
+        </div>
+        <hr>
+        <div class="sb-bodyPart">
+          <div class="settings-label">
+          <label>Play color:</label>
           </div>
-          
-          <div class="range-container">
+
+            <div id="select-white" class="crown-container">
+              <img src="/images/wk.png" title="Play White" class="crown-icon">
+            </div>
+            <div id="select-random" class="crown-container">
+              <img src="/images/rk.png" title="Random Color" class="crown-icon">
+            </div>
+            <div id="select-black" class="crown-container" >
+              <img src="/images/bk.png" title="Play Black" class="crown-icon">
+            </div>
+
+        </div>
+          <div class="sb-bodyPart">
+          <label>Moves: </label>
+          <div class="range-selector">
               <div class="slider-headers">
                   <span id="min-header">1</span>
-                  <p>New game number of turns</p>
                   <span id="max-header">10</span>
               </div>
       
               <div class="slider-wrapper">
                   <input type="range" id="min-slider" min="1" max="10" value="1" step="1">
                   <input type="range" id="max-slider" min="1" max="10" value="10" step="1">
-                  <!-- Progress bar fill (optional, styled by CSS) -->
                   <div class="progress" id="progress-bar"></div>
               </div>
           </div>
-<!-- TBD settings SB panel
-new game playing as ...
-2 ended slider for number of turns 0-9
-eco pull down
-named opening pulldown
-modern/classic
--->
-    </div>
-      <div id="sb-body-result" class="container-sb-middle">
-      
-      <div class="copy-pgn">
-        <input type="text" id="copyPGN" value="1. e4 e5" readonly>
-        <button class="copy-btn" id="copyPGN-btn" aria-label="Copy">
-          📋
-        </button>
-      </div>
+          </div>
+ 
+                  <hr>
+          <div class="sb-bodyPart">
+            <label>Theme: </label>
+            <label class="left-textOn" id="themeLeftText">Classic</label>
+            <label class="switch">
+              <input type="checkbox" id="themeToggle">
+              <span class="slider"></span>
+            </label>
+            <label class="textOff" id="themeRightText">Modern</label>
+          </div>
+          <div class="sb-bodyPart">
+            <labeL>Play sounds: </label>
+            <label class="switch">
+              <input type="checkbox" id="toggleSounds">
+              <span class="slider onOff"></span>
+            </label>
+          </div>
+          <div class="sb-bodyPart">
+            <labeL>Replay missed games: </label>
+            <label class="switch">
+              <input type="checkbox" id="toggleReplayGames">
+              <span class="slider onOff"></span>
+            </label>
+          </div>
 
-      <div>
-        <table id="resultTable">
-          <thead>
-            <!-- js compelets -->
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-        <div class="messageBox blue" id="resultBlue">
-            <div><p>Well done! You picked the most popular move played by chess masters.</p></div>
+          <div class="sb-bodyPart">
+            <labeL>Highlight landing squares: </label>
+            <label class="switch">
+              <input type="checkbox" id="toggleHighlight">
+              <span class="slider onOff"></span>
+            </label>
+          </div>
+          <div class="sb-bodyPart">
+            <labeL>On board: show best move: </label>
+            <label class="switch">
+              <input type="checkbox" id="toggleArrows">
+              <span class="slider onOff"></span>
+            </label>
+          </div>          
+    </div>
+      <div id="sb-body-result" class="container-sb-body">
+        <div class="copy-pgn">
+          <input type="text" id="copyPGN" style="width:90%;"value="" readonly>
+          <button class="copy-btn" id="copyPGN-btn" aria-label="Copy">
+            📋
+          </button>
         </div>
-        <div class="messageBox green" id="resultGreen">
-            <div><p>Good.  You picked a common move.</p></div>
+        <hr>
+        <div class="resultsBar" id="resultsBar"></div>
+
+        <div class="messageBox blue" id="result-blue">
+            <div><p>Best move!</p></div>
         </div>
-        <div class="messageBox yellow" id="resultYellow">
-            <div><p>OK. Picking the less traveled path?</p></div>
+        <div class="messageBox green" id="result-green">
+            <div><p>Good move</p></div>
         </div>
-        <div class="messageBox red" id="resultRed">
-            <div><p>Your move wasn't played in any game.  Most likely an inaccuracy.  Keep trying.</p></div>
+        <div class="messageBox yellow" id="result-yellow">
+            <div><p>Irregular move</p></div>
+        </div>
+        <div class="messageBox red" id="result-red">
+            <div><p>Miss</p></div>
+        </div>
+
+        <div>
+          <table id="resultTable">
+            <thead>
+              <!-- js completes -->
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div id="sb-body-explain" class="sb-bodyPart">
+          <button id="bestMove" class="sb-button button explain">
+          Explain <br>Best Move</button>
+          <button id="yourMove" class="sb-button button explain" style="flex:1">
+          Explain <br>Your move</button>
         </div>
 <!-- TBDs
-Animation to show best moves
-Link the move in table to progress game
-fen/pgn - (tbd: link to Chess.com/lichess)
-current session stats line
 Button to show history
 -->
     </div>
 
-      <div id="sb-body-profile" class="container-sb-middle">
+      <div id="sb-body-profile" class="container-sb-body">
 <!-- TBDs
 show
 games played
@@ -139,28 +205,22 @@ delete history
 logout
 -->
       </div>
-      <div id="sb-body-playing" class="container-sb-middle">
+      <div id="sb-body-playing" class="container-sb-body">
           <div class="container-playAs white2play" id="white">
             <div id="white-crown" class="crown-container">
               <img src="/images/wk.png" alt="Crown" class="crown-icon">
             </div>
-            <div><p>White to play</p></div>
+            <div><p>&nbsp;White to play</p></div>
           </div>
         
           <div class="container-playAs black2play" id="black">
             <div id="black-crown" class="crown-container">
               <img src="/images/bk.png" alt="Crown" class="crown-icon">
             </div>
-            <div><p style="color:black">Black to play</p></div>
+            <div><p >&nbsp;Black to play</p></div>
           </div>
       </div>
       
-      <div id="sb-footer" class="container-sb-bottom">
-        <div>
-          <button id="newGameBtn" class="sb-button button" style="flex:5">
-          NEW GAME</button>
-      </div>
-    </div>
   </div>
 
 <script src="scripts/confetti.min.js" defer></script>

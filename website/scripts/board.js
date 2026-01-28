@@ -29,7 +29,7 @@ export function playMove(notation,isUserMove) {
             console.log( `Bad move notation: ${_move.notation}` );
             return;
         }
-        if( identifyPiece() ) {
+        if( identifyPiece(_move.WorB+_move.pieceType)) {
             executeMove(_move);
         }
     }
@@ -43,7 +43,16 @@ export function playMove(notation,isUserMove) {
     _game.WorB = _move.WorB = (_move.WorB == 'w') ? "b" : "w";
     GameData.updateNode(notation);
     if( isUserMove ) {
-        Sidebar.setResultsTable(notation);
+        Sidebar.recordResult(notation);
+        if( _globals.showBestArrow ) {
+            let endSq = _move.endSquare.alpha;
+            parseMove(_globals.bestMove);
+            if( _move.endSquare.alpha != endSq ) {
+                let color = (_move.WorB == 'w') ? "b" : "w"; 
+                identifyPiece(color+_move.pieceType);
+                createArrow(_move.startSquare.alpha, _move.endSquare.alpha);
+            }
+        }
     }
     return;
 }
@@ -75,7 +84,6 @@ let _move = {
     captureMove: false, // True only when move is a capture
     checkResult: false,
     mateResult: false,
-    enPassant: "=",
 };
 
 // ------------- helper/utility functions --------------
@@ -91,11 +99,17 @@ function index2node( file, rank ) {
     return document.getElementById(index2alpha(file,rank));
 }
 
-function alpha2index( square ) {
-    let cell = [];
-    cell[0] = _fileToX[ square[0] ];
-    cell[1] = 7- _rankToY[ square[1] ];
-    return cell;
+function alpha2index( sq ) {
+   let x = sq[0].charCodeAt(0)-'a'.charCodeAt(0);
+   let y = sq[1].charCodeAt(0)-'1'.charCodeAt(0);
+   if( _flipped ) {
+        x = "76543210"[x];
+        y = "76543210"[y];
+    } else {
+        x = "01234567"[x];
+        y = "76543210"[y];
+    }
+    return [x,y];
 }
 
 function sleep(ms) {
@@ -232,10 +246,12 @@ function pickedValidPiece(node) {
         return null;
     }   
     let piece = getPieceFromNode(node);
-    if( _game.WorB != piece[0] ) {
+/*TBD unnneded test
+if( _game.WorB != piece[0] ) {
         // Wrong color piece
         return null;
     }
+*/
     sq.WorB = piece[0];
     sq.pieceType = piece[1];
     sq.startSquare = nodeToSquareType( node );
@@ -255,8 +271,89 @@ window.addEventListener('resize', () => {
     resizeBoard(window.innerWidth, window.innerHeight);
 });
 
+/* -------------- Move Arrow ----------------  */
+function getSquareCenter(sq) {
+    const element = document.getElementById(sq);
+    const rect = element.getBoundingClientRect();
 
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    return [centerX,centerY];
+}
 
+function createArrow( headSq, tailSq ) {
+  const container = document.getElementById("board");
+
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'arrow');
+  svg.style.left = '0';
+  svg.style.top = '0';
+  svg.style.width = '100%';
+  svg.style.height = '100%';
+  svg.style.pointerEvents = 'none';
+
+  // Calculate angle and length
+/*  const [sqX1,sqY1] = alpha2index(tailSq);
+  const halfSq = Math.trunc(_squareSize/2);
+  const x1 = (sqX1*_squareSize) + halfSq;
+  const y1 = (sqY1*_squareSize) + halfSq;
+  const [sqX2,sqY2] = alpha2index(headSq);
+  const x2 = (sqX2*_squareSize) + halfSq;
+  const y2 = (sqY2*_squareSize) + halfSq;
+*/
+  const [x1,y1] = getSquareCenter(headSq);
+  const [x2,y2] = getSquareCenter(tailSq);
+  
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const angle = Math.atan2(dy, dx);
+  const length = Math.sqrt(dx * dx + dy * dy);
+
+  // Create line
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  line.setAttribute('class', 'arrow-line');
+  line.setAttribute('x1', x1);
+  line.setAttribute('y1', y1);
+  line.setAttribute('x2', x2);
+  line.setAttribute('y2', y2);
+
+  // Create arrowhead
+  const headLength = 25;
+  const headWidth = 20;
+  
+// Shorten the line so arrowhead base aligns with endpoint
+  const adjustedX2 = x2 - headLength * Math.cos(angle);
+  const adjustedY2 = y2 - headLength * Math.sin(angle);
+  
+  line.setAttribute('x2', adjustedX2);
+  line.setAttribute('y2', adjustedY2);
+
+const arrowHead = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  arrowHead.setAttribute('class', 'arrow-head');
+  
+  // Calculate arrowhead points
+  const p1x = x2;
+  const p1y = y2;
+  const p2x = x2 - headLength * Math.cos(angle) - headWidth * Math.sin(angle);
+  const p2y = y2 - headLength * Math.sin(angle) + headWidth * Math.cos(angle);
+  const p3x = x2 - headLength * Math.cos(angle) + headWidth * Math.sin(angle);
+  const p3y = y2 - headLength * Math.sin(angle) - headWidth * Math.cos(angle);
+  
+  arrowHead.setAttribute('points', `${p1x},${p1y} ${p2x},${p2y} ${p3x},${p3y}`);
+
+  svg.appendChild(line);
+  svg.appendChild(arrowHead);
+  container.appendChild(svg);
+  
+  return svg;
+}
+
+// Clear all arrows
+function clearArrows() {
+  const arrows = document.querySelectorAll('.arrow');
+  arrows.forEach(arrow => arrow.remove());
+}
+ 
 
 // ---------- available spaces of a piece --------------
 let _moveTos = [];  // alpha of piece i.e. "a8"
@@ -395,6 +492,12 @@ function availPawnSquares(piece) {
     let y = piece.startSquare.rank + distance;
     probeOppOnSquare( x-1, y, piece.WorB );
     probeOppOnSquare( x+1, y, piece.WorB );
+    if( _game.enPassant != "-" ) {
+        if( _game.enPassant == index2alpha( x-1, y))
+            _moveTos.push( _game.enPassant );
+        if( _game.enPassant == index2alpha( x+1, y))
+            _moveTos.push( _game.enPassant );
+    }
 }
 
 function availRookSquares(piece) {
@@ -537,10 +640,9 @@ function disambiguate(move) {
 
 // ------------------ Move Functions --------------------
 
-function identifyPiece() {
+function identifyPiece(colorType) {
     // Moving based on game notation
-    const colorType = _move.WorB + _move.pieceType;
-    const candidates = document.querySelectorAll(`[data-group="${colorType}"]`);
+     const candidates = document.querySelectorAll(`[data-group="${colorType}"]`);
     if( !candidates ) {
         console.log(`No (${colorType}) on board; Bad move: ${_move.notation}`);
         return false;
@@ -652,11 +754,8 @@ function moveCastle(notation) {
 
 function parseMove(notation) {
 
-    // enPassant option only lasts for a halfmove
-    _move.enPassant = _game.enPassant;
     _move.disambiguate = "";
     _move.promotionPiece = "";
-    _game.enPassant = '-';
     _move.checkResult = false;
 
     // Peel off the special ending states
@@ -741,7 +840,8 @@ export function resetPieces( fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR 
     _game.fen = fen
     _globals.nextNode = 0;
     _globals.PGN = "";
-    _globals.steps = []
+    _globals.steps = [];
+    _move.checkResult = false;
 
     const fenRanks = parts[0].split("/");
     if (fenRanks.length != 8) {
@@ -829,11 +929,21 @@ function executeMove(move) {  // Update the UI
         pieceAdd( move.WorB + move.promotionPiece, move.endSquare.alpha);
     }
         
-    if( move.enPassant == move.endSquare.alpha ) {
-        //Nuke the passed pawn
-        move.endSquare.rank += (move.WorB == "w") ? 1 : -1;    
-        move.endSquare.alpha = index2alpha(move.endSquare.file, move.enfSquare.rank);
+    if( _game.enPassant == move.endSquare.alpha ) {
+        //Nuke the passed pawn  
+        move.endSquare.alpha = index2alpha(move.endSquare.file, move.endSquare.rank+1);
         pieceDelete(move.endSquare.alpha);
+        move.endSquare.alpha = index2alpha(move.endSquare.file, move.endSquare.rank-1);
+        pieceDelete(move.endSquare.alpha);
+    }
+    
+    // Set enPassat if 2 square pawn move
+    _game.enPassant = "-";
+    if( move.pieceType == "p" ) {
+        if( (move.endSquare.rank == 3) && (move.startSquare.rank == 1) )
+            _game.enPassant = index2alpha(move.endSquare.file,2);
+        if( (move.endSquare.rank == 4) && (move.startSquare.rank == 6) )
+            _game.enPassant = index2alpha(move.endSquare.file,5);
     }
 }
 
@@ -907,7 +1017,7 @@ function resizeBoard(w,h) {
     // We want the largest square board without squeezing the sidebar
     console.log(`Viewport width: ${w}px, height: ${h}px`);
     w = document.documentElement.clientWidth;
-        h = document.documentElement.clientHeight;
+    h = document.documentElement.clientHeight;
 
     let r = document.querySelector(':root');
     let side = document.getElementById('sb-container').offsetWidth;
@@ -931,6 +1041,7 @@ export function initializeBoard() {
     let child, img  = null;
     // Populate the global variables
     resizeBoard(window.innerWidth, window.innerHeight);
+    clearArrows();
     
     setRanksFiles();
     let gridFiles = "abcdefgh";
@@ -967,7 +1078,8 @@ export function initializeBoard() {
                 let moveNotation = clickEvent(e);
                 if( _audioResult == null ) _audioResult = _audioMove;
                 try {
-                    _audioResult.play();
+                    if( _globals.playSounds )
+                        _audioResult.play();
                 } catch (error) {
                     console.error("Click event audio playback failed:", error);
                 }
@@ -995,7 +1107,8 @@ export function initializeBoard() {
                 let moveNotation = dropEvent(e);
                 if( _audioResult == null ) _audioResult = _audioMove;
                 try {
-                    _audioResult.play();
+                    if( _globals.playSounds )
+                        _audioResult.play();
                 } catch (error) {
                      console.error("Drop event audio playback failed:", error);
                 }
@@ -1015,9 +1128,11 @@ function unhighlightSquare( square, className ) {
 }
 
 function highlightSquare( square, className ) {
-    let child = document.createElement("div");
-    child.className = "square "+className;
-    square.appendChild(child);
+    if( _globals.showHighlights ) {
+        let child = document.createElement("div");
+        child.className = "square "+className;
+        square.appendChild(child);
+    }
 }
 
 // ----------- game control functions ---------------- //
