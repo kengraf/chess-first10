@@ -2,3 +2,4 @@
 *.wpr
 *.zip
 *.tmp
+/deploy/lambda/package/*
