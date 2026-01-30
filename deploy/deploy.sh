@@ -49,7 +49,9 @@ website() {
 
 invalidation() {
     FRONT_ID=`aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[?contains(DomainName, 'chess-first10.s3.us-east-2.amazonaws.com')]].Id" --output=text`
-    aws cloudfront create-invalidation --distribution-id ${FRONT_ID} --paths "/*"
+    if [ $FRONT_ID ]; then
+        aws cloudfront create-invalidation --distribution-id ${FRONT_ID} --paths "/*"
+    fi
 }
 
 cf() {
