@@ -674,30 +674,6 @@ input:checked + .slider:before {
       outline: none;
       border-color: #4CAF50;
     }
-    
-    input.invalid {
-      border-color: #f44336;
-    }
-    input.valid {
-      border-color: #4CAF50;
-    }
-    .message-tbd {
-      margin-top: 8px;
-      font-size: 14px;
-      min-height: 20px;
-    }
-    .error {
-      color: #f44336;
-    }
-    .success {
-      color: #4CAF50;
-    }
-    .info {
-      color: #666;
-      font-size: 13px;
-      margin-top: 12px;
-      line-height: 1.5;
-    }
 
 /* ------- results bar ------  */
 .resultsBar {

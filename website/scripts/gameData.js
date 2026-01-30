@@ -31,10 +31,8 @@ export function getOpening() {
 	}
 	Sidebar.show("container-playAs",_globals.playingAs,"flex");
 
-	// TBD use ECO
-	// TBD use named opening
 	Sidebar.displayGamesCount();
-	return randomGame(steps);
+	return randomGame(steps);  // Constrained by ECO values
 }
 
 function add_game_step(notation) {
@@ -43,8 +41,9 @@ function add_game_step(notation) {
 		_globals.PGN += `${len/2+1}. `;
 	}
 	_globals.steps.push(notation);
+	incrementNode(notation);
 	_globals.PGN += `${notation} `;
-	console.log(_globals.PGN);
+
 }
 
 export function setPeekSteps(node) {
@@ -57,64 +56,60 @@ export function setPeekSteps(node) {
 	_globals.peekSteps.sort((a, b) => b.Count - a.Count);
 }
 
+export function incrementNode(notation) {
+	_globals.nextNode = NODES[_globals.nextNode].steps[notation];
+}
+
 export function updateNode(notation) {
 
 	setPeekSteps(_globals.nextNode);
-	add_game_step(notation);
-	if( !(notation in NODES[_globals.nextNode].steps)) {
-		// Bad move choice by user
-		return;
+	if( notation in NODES[_globals.nextNode].steps) {
+		// Known move choice by user
+		add_game_step(notation);
 	}
-	_globals.nextNode = NODES[_globals.nextNode].steps[notation];
-	console.log(_globals.nextNode);
 }
 	
 
 function randomGame(steps) {
-	if (typeof steps !== 'number' || steps < 2 || steps > 20) {
-		throw new Error('Value must be a number between 0 and 19');
-	}
+
 	_globals.steps = [];
 	_globals.PGN = "";
 	_globals.nextNode = 0;
 	let iNode = 0;
 	let move = 1;
+	let ecoMoves = _globals.ecoMoves;
 	
 	for (let i = 0; i < steps; i++) {
-		let totIndex = 0;
-		for (const [step, index] of Object.entries(NODES[iNode].steps)) {
-			totIndex += NODES[index].count;
-		}
-		
-		let number = Math.floor(Math.random() * (totIndex + 1));
-		
-		let selectedStep, selectedIndex;
-		for (const [step, index] of Object.entries(NODES[iNode].steps)) {
-			const count = NODES[index].count;
-			if (number > count) {
-				number -= count;
-			} else {
-
-				add_game_step(step);
-				selectedStep = step;
-				selectedIndex = index;
-				break;
+		if( ecoMoves.length > i ) {
+			// Use predetermined ECO based move
+			let move = NODES[iNode].steps[ecoMoves[i]];
+			add_game_step( ecoMoves[i] );
+			iNode = move;
+		} else {
+			// Random move selection
+			let totIndex = 0;
+			for (const [step, index] of Object.entries(NODES[iNode].steps)) {
+				totIndex += NODES[index].count;
 			}
+			
+			let number = Math.floor(Math.random() * (totIndex + 1));
+			
+			let selectedIndex;
+			for (const [step, index] of Object.entries(NODES[iNode].steps)) {
+				const count = NODES[index].count;
+				if (number > count) {
+					number -= count;
+				} else {
+					add_game_step(step);
+					selectedIndex = index;
+					break;
+				}
+			}
+			iNode = selectedIndex;
 		}
-		iNode = selectedIndex;
 	}
 	_globals.nextNode = iNode;
 	return _globals.steps;
-}
-
-	
-function addGame(game) {
-	const count = parseInt(game.shift());
-	while (game.length) {
-		game.shift(); // discard number
-		add2nodes(count, game.shift()); // white
-		add2nodes(count, game.shift()); // black
-	}
 }
 
 function add2nodes(count, step) {
@@ -158,25 +153,6 @@ export async function processNodesURL(url) {
 		console.error("Error fetching or processing URL:", error);
 		throw error;
 	}
-	Sidebar.displayGamesCount();  // sets game count in sidebar
+	Sidebar.displayGamesCount();
 	return NODES;
 }
-
-/* --------------- ECO data management ---------- */
-const _eco = {};
-async function loadOpenings() {
-	try {
-		const response = await fetch('data/eco-list.json');
-		let openings = await response.json();
-		
-		console.log(`Loaded ${openings.length} openings`);
-		return openings;
-		
-	} catch (error) {
-		console.error('Error loading openings:', error);
-		return [];
-	}
-}
-
-// Usage:
-_eco.openings = await loadOpenings();

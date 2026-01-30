@@ -35,7 +35,7 @@ export function playMove(notation,isUserMove) {
     }
     // TBD play sound here or at end of executemove?
 
-/* TBD
+/* TBD: enable animation
     _move.delay = 2;
     if( _move.delay ) 
         await sleep( _move.delay * 1000 );
@@ -147,45 +147,6 @@ function dropEvent(e) {
     return null;
 }
 
-
-function dragControl(event) {
-    // constrain dragging to board
-    const dragContainer = document.getElementById('board');
-
-    const dragPiece = event.currentTarget;
-    let shiftX = event.clientX - dragPiece.getBoundingClientRect().left;
-    let shiftY = event.clientY - dragPiece.getBoundingClientRect().top;
-
-    function moveAt(pageX, pageY) {
-        let newX = pageX - shiftX - dragContainer.getBoundingClientRect().left;
-        let newY = pageY - shiftY - dragContainer.getBoundingClientRect().top;
-
-        // Constraints
-        const maxX = dragContainer.clientWidth - dragPiece.offsetWidth;
-        const maxY = dragContainer.clientHeight - dragPiece.offsetHeight;
-
-        // Clamp values between 0 and Max
-        newX = Math.max(0, Math.min(newX, maxX));
-        newY = Math.max(0, Math.min(newY, maxY));
-
-        dragPiece.style.left = newX + 'px';
-        dragPiece.style.top = newY + 'px';
-        console.log(`X=${newX} Y=${newY}`);
-    }
-
-    function onMouseMove(event) {
-        moveAt(event.pageX, event.pageY);
-        console.log(`X=${event.pageX} Y=${event.pageY}`);
-    }
-
-    document.addEventListener('mousemove', onMouseMove);
-
-    document.onmouseup = function() {
-        document.removeEventListener('mousemove', onMouseMove);
-        document.onmouseup = null;
-    };
-};
-
 function clickEvent(e) {
     _audioResult = null;
     if( _activePiece ) {
@@ -246,12 +207,6 @@ function pickedValidPiece(node) {
         return null;
     }   
     let piece = getPieceFromNode(node);
-/*TBD unnneded test
-if( _game.WorB != piece[0] ) {
-        // Wrong color piece
-        return null;
-    }
-*/
     sq.WorB = piece[0];
     sq.pieceType = piece[1];
     sq.startSquare = nodeToSquareType( node );
@@ -977,8 +932,6 @@ function pieceAdd( piece, square) {
     img.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("text/plain", e.currentTarget.id);
         e.dataTransfer.setDragImage(img, _squareSize/2,_squareSize/2);
-//TBD bind drags to the board
-//TBD   dragControl( e );
         _activePiece = pickedValidPiece( e.currentTarget );
         if( _activePiece ) {
             highlightSquare( e.currentTarget, "drag-overlay" );
@@ -1224,9 +1177,3 @@ function positionAndSizeLabel(parentDiv, type, label) {
   labelDiv.innerHTML = `${label}`;
   parentDiv.appendChild(labelDiv);  
 }
-
-/*
-// Run the function initially and on window resize for responsiveness
-TBD_positionAndSizeLabel();
-window.addEventListener('resize', TBD_positionAndSizeLabel();
-*/

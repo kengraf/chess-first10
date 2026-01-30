@@ -7,13 +7,8 @@ import * as Sidebar from './sidebar.js'
 // Globals
 export let _globals = {};
 
-_globals.gameOptions = { 
-			"worb": ["w", "r", "b"],
-			"theme": ["classic", "modern" ],
-			"eco": ["tbd"],
-			"url":"data/first10.pgn"};
-_globals.boardTheme = _globals.gameOptions.theme[0];
-_globals.pgnURL = _globals.gameOptions.url[0];
+_globals.boardTheme = "classic";
+_globals.pgnURL = "data/first10.pgn";
 _globals.minimumTurns = 1;
 _globals.maximumTurns = 10;
 _globals.PGN = ""; // local instead?
@@ -30,7 +25,8 @@ _globals.showBestArrow = false;
 _globals.playSounds = false;
 _globals.replayGames = false;
 _globals.showHighlights = false;
-_globals.bestMove = ""
+_globals.bestMove = "";
+_globals.ecoMoves = [];
 
 // ---------- Code to run the game -------------
 function init() {
@@ -60,7 +56,7 @@ export function openingActions() {
 	if( showSplash ) {
 		showSplash = false;
 		if( _globals.sessionCookie == "" ) {
-			// Show splash page, the button ot dismiss recurses
+			// Show splash page, dismiss button recurses
 			document.getElementById('splash').style.display='grid';
 			return;
 		}
@@ -71,7 +67,7 @@ export function openingActions() {
 	if( showSignin ) {
 		showSignin = false;
 		if( _globals.userCookie == "" ) {
-			// Prompt for login
+			// Prompt for login, this function recurses
 			showGoogleSigninButton();
 			return;
 		}
@@ -79,6 +75,19 @@ export function openingActions() {
 
 	// Generate sidebar and UI elements
 	Sidebar.init('container-sb');
+	
+	// Save session when user leaves window
+	document.addEventListener('visibilitychange', function () {
+		if (document.visibilityState != 'hidden') return;
+
+		const analyticsData_TBD = {
+			event: 'user_left_page',
+			timestamp: Date.now()
+		};
+
+		navigator.sendBeacon('/api/log-exit', JSON.stringify(analyticsData));
+	});
+
 }
 
 
@@ -90,16 +99,6 @@ function readParameters() {
 	const urlParams = new URLSearchParams(queryString);
 	
 	let s = "";
-	if( s = urlParams.get('theme')) {
-		if (_globals.gameOptions.theme.includes(s)) {
-			_globals.boardTheme = s;
-		}
-	}
-
-	if( s = urlParams.get('url') ) {
-		_globals.pgnURL = s;
-	};
-
 	if( s = urlParams.get('cookies') ) {
 		// Over-riding the actual cookies
 		const cookies = s.split(";");
@@ -167,7 +166,7 @@ function handleCredentialResponse(response) {
 	})
 	.then(response => {
 		if (!response.ok) {
-		throw new Error(`Token verification failed: ${response.status}`);
+			throw new Error(`Token verification failed: ${response.status}`);
 		}
 		return response.json();
 	})

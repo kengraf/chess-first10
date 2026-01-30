@@ -12,6 +12,7 @@ export function init() {
     pickColor('random');
     updateSlider();
     loadChessOpenings();
+    loadEcoOpenings();
 
     minSlider.addEventListener('input', updateSlider);
     maxSlider.addEventListener('input', updateSlider);
@@ -153,7 +154,7 @@ function newGame() {
     
     let moves = GameData.getOpening();
 
-//TBD TESTING let moves = ['e4', 'd6', 'd4', 'Nf6', 'Nc3', 'e5', 'Nf3', 'Nbd7', 'Bc4', 'Be7', 'O-O', 'O-O'];
+//TBD TESTING: moves = ['e4', ... ];
 
     Board.initializeBoard();
     _globals.nextNode = 0;
@@ -165,7 +166,7 @@ function newGame() {
 }
 
 function populateUserProfile() {
-    // Hidden login, show profile
+    // Hide login, show profile
     const loginDiv = document.getElementById('loginDiv');
     loginDiv.style.display = "none";
     
@@ -190,6 +191,7 @@ function populateUserProfile() {
     });
 }
 
+document.getElementById('ecoInput').addEventListener('input', () => { setCurrentEcoCode(event.target.value); });
   
 document.getElementById('select-white').addEventListener('click', () => {
     pickColor('white');
@@ -213,12 +215,8 @@ document.getElementById('copyPGN-btn').addEventListener('click', () => {
     copyPGN();
 });
  
-document.getElementById('splash-button').addEventListener('click', () => {
-    First10.openingActions();
-});
+document.getElementById('splash-button').addEventListener('click', () => { First10.openingActions(); });
  
-
-
 document.getElementById('loginDiv').addEventListener('click', () => {
     if( _globals.userCookie ==  "" )
         First10.showGoogleSigninButton()
@@ -230,6 +228,7 @@ document.getElementById('settingsBtn').addEventListener('click', () => {
     show("container-sb-body","sb-body-settings","flex");
 });
 document.getElementById('newGameBtn').addEventListener('click', () => {
+    show("container-sb-body","sb-body-playing","flex");
     newGame();
 });
 
@@ -277,7 +276,7 @@ async function loadChessOpenings() {
             // Create a new option element
             const option = document.createElement('option');
             option.text = name;   // e.g., "Caro-Kann"
-            option.value = code;  // e.g., "B10-B19"
+            option.value = code;  // e.g., "B10"
             
             dropdown.add(option);
         });
@@ -286,25 +285,23 @@ async function loadChessOpenings() {
     }
     dropdown.addEventListener('change', function() {
         const ecoCode = this.value;
-        const ecoName = this.options[this.selectedIndex].text;
     
-        if (selectedCode) {
-            handleNameSelection(ecoName, ecoCode);
+        if (ecoCode) {
+            setCurrentEcoCode(ecoCode);
         }
     });
 }
 
-function handleNameSelection(name, code) {
-    console.log(`User selected: ${name} with code range: ${code}`);
+function handleCodeSelection(code) {
     
-    // TBD 
-    if (name === "Random") {
-        alert("Choosing a random opening...");
+    if ( count == 0) {
+        alert("No ECO(${code}) based games in dataset");
+        _globals.ecoMoves = [];
     }
 }
 
 function explainWithGoogle() {
-    const query = "why is " + bestMove + " the best move after " + _globals.PGN;
+    const query = "why is " + _globals.bestMove + " the best move after " + _globals.PGN;
 
     const url = 'https://www.google.com/search?q=' + encodeURIComponent(query);
 
@@ -368,30 +365,51 @@ function updateSlider() {
 }
 
 // -------------------- ECO input -----------------
-    const ecoInput = document.getElementById('ecoInput');
-    ecoInput.addEventListener('input', updateValidation);
 
-    function validateInput(value) {
-      const pattern = /^[A-Ea-e]\d{2}$/;
-      return pattern.test(value);
+async function loadEcoOpenings() {
+    try {
+        const response = await fetch('data/eco-list.json');
+        _globals.ecoOpenings = await response.json();
+        
+        console.log(`Loaded ${_globals.ecoOpenings.length} openings`);
+        return;
+        
+    } catch (error) {
+        console.error('Error loading openings:', error);
+        return;
     }
+}
 
-    function updateValidation() {
-      const value = ecoInput.value;
-      
-      if( (value === '') || validateInput(value)) {
-        _eco.selected = value;
-        }
+function setCurrentEcoCode(code) {
+    code.toUpperCase()
+    const pattern = /^[A-E]\d{2}$/;
+    
+    _globals.ecoMoves = [];
+    if( ! pattern.test(code) ) {
+        _globals.ecoMoves = [];
+        return;
     }
+        
+    _globals.ecoCode = code;
+    _globals.nextNode = 0;
+    const eco = _globals.ecoOpenings.find(opening => opening.eco === code);
+    
+    let moves = eco.moves.split(/[. ]/);
+    while (moves.length) {
+      moves.shift(); // discard number
+      _globals.ecoMoves.push(moves[0]);
+      GameData.incrementNode(moves[0]);
+      moves.shift();
+      if( moves.length == 0 ) break;
+       _globals.ecoMoves.push(moves[0]);
+      GameData.incrementNode(moves[0]);
+      moves.shift();
+    }
+    displayGamesCount(_globals.nextNode);
+}
 
-/* TBD
-    input.addEventListener('blur', updateValidation);
-
-    // Initial validation
-    updateValidation();
-*/
 export function displayGamesCount(node = 0) {
-    GameData.setPeekSteps(0);
+    GameData.setPeekSteps(node);
     const data = _globals.peekSteps;
     let cnt = data.reduce((sum, item) => sum + item.Count, 0);
     let label = document.getElementById( "gamesCount");
@@ -403,9 +421,7 @@ export function displayGamesCount(node = 0) {
       console.log(`Moves: ${opening.moves}`);
     });
     
-    // Example: Find a specific opening by ECO code
-    const a12 = data.find(opening => opening.eco === 'A12');
-    console.log(a12);
+
     
     // Example: Filter by name
     const englishOpenings = data.filter(opening => 
