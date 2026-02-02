@@ -11,8 +11,9 @@ export function init() {
      // Start by showing the newgame options
     pickColor('random');
     updateSlider();
-    loadChessOpenings();
     loadEcoOpenings();
+    loadChessOpenings();
+
 
     minSlider.addEventListener('input', updateSlider);
     maxSlider.addEventListener('input', updateSlider);

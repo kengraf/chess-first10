@@ -85,7 +85,7 @@ export function openingActions() {
 			timestamp: Date.now()
 		};
 
-		navigator.sendBeacon('/api/log-exit', JSON.stringify(analyticsData));
+		navigator.sendBeacon('/v1/databaseItems?user={sub}', JSON.stringify(analyticsData));
 	});
 
 }

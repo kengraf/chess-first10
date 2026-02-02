@@ -305,12 +305,12 @@ container-sb {
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(8px);
   display: none;
-  height: 100vh;
   left: 0;
   place-items: center; 
   position: fixed;
   top: 0;
-  width: 60%;
+  width: min(calc(100vh), calc(100vw - 270px));
+  height: min(calc(100vh), calc(100vw - 270px));
   z-index: 99;
 }
 
