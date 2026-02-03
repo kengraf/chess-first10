@@ -3,4 +3,5 @@
 *.zip
 *.tmp
 *.nodes
+*.pgn
 /deploy/lambda/package/*

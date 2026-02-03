@@ -107,6 +107,31 @@
         }
       }
     },
+	"DatabaseItemsFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "FunctionName": {
+          "Fn::Join": ["", [{"Ref": "DeployName"}, "VerifyToken"]]
+        },
+        "Handler": "databaseItems.handler",
+        "Runtime": "python3.14",
+        "Role": {
+          "Fn::GetAtt": ["LambdaExecutionRole", "Arn"]
+        },
+        "Code": {
+          "S3Bucket": {"Ref": "S3bucketName"},
+          "S3Key": "v1/databaseItems.zip"
+        },
+        "MemorySize": 128,
+        "Timeout": 15,
+        "Environment": {
+          "Variables": {
+            "TABLE_NAME": {"Ref": "DynamoDBTable"}
+          }
+        }
+      }
+    },
+	
     "HttpApi": {
       "Type": "AWS::ApiGatewayV2::Api",
       "Properties": {
@@ -116,17 +141,19 @@
         "ProtocolType": "HTTP"
       }
     },
-    "LambdaIntegration": {
+	
+	
+    "VerifyTokenIntegration": {
       "Type": "AWS::ApiGatewayV2::Integration",
       "Properties": {
         "ApiId": {"Ref": "HttpApi"},
-	"IntegrationMethod": "POST",
+		"IntegrationMethod": "POST",
         "IntegrationType": "AWS_PROXY",
         "IntegrationUri": {"Fn::GetAtt": ["VerifyTokenFunction", "Arn"]},
         "PayloadFormatVersion": "2.0"
       }
     },
-    "HttpApiRoute": {
+    "VerifyTokenRoute": {
       "Type": "AWS::ApiGatewayV2::Route",
       "Properties": {
         "ApiId": {"Ref": "HttpApi"},
@@ -134,12 +161,12 @@
         "Target": {
           "Fn::Join": [
             "",
-            ["integrations/", {"Ref": "LambdaIntegration"}]
+            ["integrations/", {"Ref": "VerifyTokenIntegration"}]
           ]
         }
       }
     },
-    "LambdaInvokePermission": {
+    "VerifyTokenInvokePermission": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "FunctionName": {"Ref": "VerifyTokenFunction"},
@@ -150,11 +177,47 @@
         }
       }
     },
+	
+    "DatabaseItemsIntegration": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {"Ref": "HttpApi"},
+		"IntegrationMethod": "POST",
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {"Fn::GetAtt": ["DatabaseItemsFunction", "Arn"]},
+        "PayloadFormatVersion": "2.0"
+      }
+    },
+    "DatabaseItemsRoute": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {"Ref": "HttpApi"},
+        "RouteKey": "POST /databaseItems",
+        "Target": {
+          "Fn::Join": [
+            "",
+            ["integrations/", {"Ref": "DatabaseItemsIntegration"}]
+          ]
+        }
+      }
+    },
+    "DatabaseItemsInvokePermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {"Ref": "DatabaseItemsFunction"},
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*"
+        }
+      }
+    },
+	
     "HttpApiStage": {
       "Type": "AWS::ApiGatewayV2::Stage",
       "Properties": {
         "ApiId": { "Ref": "HttpApi" },
-	"AutoDeploy": true,
+		"AutoDeploy": true,
         "StageName": "v1",
         "Description": "Production stage"
       }
