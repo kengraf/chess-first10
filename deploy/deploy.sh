@@ -10,8 +10,8 @@ zips() {
     if [ ! -e "google-package.zip" ]; then
         echo "Add required libraries to verifyToken.zip"
         mkdir package
-        pip install --target ./package google-auth
-        pip install --target ./package requests
+        pip install --target ./package google-auth requests
+        pip install --platform manylinux2014_x86_64 --target=./package --implementation cp --python-version 3.14 --only-binary=:all: --upgrade cffi
         cd package/
         zip -r ../google-package.zip .
         cd ..
