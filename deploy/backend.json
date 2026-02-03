@@ -65,9 +65,7 @@
     "DynamoDBTable": {
       "Type": "AWS::DynamoDB::Table",
       "Properties": {
-        "TableName": {
-          "Fn::Join": "chess-first10:,
-        },
+        "TableName": "chess-first10",
         "AttributeDefinitions": [
           {
             "AttributeName": "sub",
@@ -111,7 +109,7 @@
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "FunctionName": {
-          "Fn::Join": ["", [{"Ref": "DeployName"}, "VerifyToken"]]
+          "Fn::Join": ["", [{"Ref": "DeployName"}, "DatabaseItems"]]
         },
         "Handler": "databaseItems.handler",
         "Runtime": "python3.14",
