@@ -65,9 +65,7 @@
     "DynamoDBTable": {
       "Type": "AWS::DynamoDB::Table",
       "Properties": {
-        "TableName": {
-          "Fn::Join": "chess-first10"
-        },
+        "TableName": "chess-first10",
         "AttributeDefinitions": [
           {
             "AttributeName": "sub",
