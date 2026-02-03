@@ -85,7 +85,7 @@
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "FunctionName": {
-          "Fn::Join": ["", [{"Ref": "DeployName"}, "VerifyToken"]]
+          "Fn::Join": ["", [{"Ref": "DeployName"}, "-VerifyToken"]]
         },
         "Handler": "verifyToken.handler",
         "Runtime": "python3.12",
@@ -109,7 +109,7 @@
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "FunctionName": {
-          "Fn::Join": ["", [{"Ref": "DeployName"}, "DatabaseItems"]]
+          "Fn::Join": ["", [{"Ref": "DeployName"}, "-DatabaseItems"]]
         },
         "Handler": "databaseItems.handler",
         "Runtime": "python3.14",
