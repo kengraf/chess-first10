@@ -66,7 +66,7 @@
       "Type": "AWS::DynamoDB::Table",
       "Properties": {
         "TableName": {
-          "Fn::Join": ["", [{"Ref": "DeployName"}, "-SessionTable"]]
+          "Fn::Join": "chess-first10:,
         },
         "AttributeDefinitions": [
           {
@@ -83,7 +83,7 @@
         "BillingMode": "PAY_PER_REQUEST"
       }
     },
-    "PythonLambdaFunction": {
+    "VerifyTokenFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "FunctionName": {
@@ -122,7 +122,7 @@
         "ApiId": {"Ref": "HttpApi"},
 	"IntegrationMethod": "POST",
         "IntegrationType": "AWS_PROXY",
-        "IntegrationUri": {"Fn::GetAtt": ["PythonLambdaFunction", "Arn"]},
+        "IntegrationUri": {"Fn::GetAtt": ["VerifyTokenFunction", "Arn"]},
         "PayloadFormatVersion": "2.0"
       }
     },
@@ -142,7 +142,7 @@
     "LambdaInvokePermission": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
-        "FunctionName": {"Ref": "PythonLambdaFunction"},
+        "FunctionName": {"Ref": "VerifyTokenFunction"},
         "Action": "lambda:InvokeFunction",
         "Principal": "apigateway.amazonaws.com",
         "SourceArn": {
