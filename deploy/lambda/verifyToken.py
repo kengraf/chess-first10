@@ -10,7 +10,7 @@ CLIENT_ID = "1030435771551-qnikf54b4jhlbdmm4bkhst0io28u11s4.apps.googleuserconte
 
 # Initialize DynamoDB client
 dynamodb = boto3.resource('dynamodb')
-table_name = os.environ['TABLE_NAME'] # set by cloudformation
+TABLE_NAME = os.environ.get('TABLE_NAME', 'chess-first10')
 table = dynamodb.Table(table_name) 
 
 def handler(event, context):
