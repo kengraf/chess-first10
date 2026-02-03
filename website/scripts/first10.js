@@ -122,16 +122,6 @@ export function isLocalHost(hostname = window.location.hostname) {
   return ['localhost', '127.0.0.1', '::1', ''].includes(hostname);
 }
 
-function dataFetch(url) {
-//TBD fix for real data history/results
-	fetch(url)
-		.then(response => response.json())
-		.then(data => {
-			scoreData = data;	
-		})
-		.catch(error => console.error('Error fetching data:', error));
-}
-
 function checkSessionCookies() {
 	const cookies = document.cookie;
 	let c = cookies.split('; ').find(row => row.startsWith('session='));
