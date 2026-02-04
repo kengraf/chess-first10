@@ -40,7 +40,7 @@ def handler(event, context):
                              "pictureurl": pic_url,
                              "sub":sub, "uuid": user_uuid})
         
-        body = json.dumps({"message": "Session created", "idToken": idInfo, "uuid":user_uuid})
+        body = json.dumps({"message": "Session created", "idToken": idinfo, "uuid":user_uuid})
         return {
             "cookies": [
                 f"session={user_uuid}; Secure=true; SameSite=Lax; Path=/",
