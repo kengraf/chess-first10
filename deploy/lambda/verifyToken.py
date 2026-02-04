@@ -40,9 +40,7 @@ def handler(event, context):
                              "pictureurl": pic_url,
                              "sub":sub, "uuid": user_uuid})
         
-        # TODO/FIX the cookie options
-        cookie1 = f"session={user_uuid}; Secure=true; SameSite=Lax; Path=/"
-        cookie2 = f"user={sub}; Secure=true; SameSite=Lax; Path=/; Max-Age=31536000"
+        body = json.dumps({"message": "Session created", "idToken": idInfo, "uuid":user_uuid})
         return {
             "cookies": [
                 f"session={user_uuid}; Secure=true; SameSite=Lax; Path=/",
@@ -54,7 +52,7 @@ def handler(event, context):
                 "Content-Type": "application/json",
                 "Cache-Control": 'no-cache="Set-Cookie"'
             },
-            "body": json.dumps({"message": "Session created", "idToken": token, "uuid":user_uuid})
+            "body": body
             }
 
 
