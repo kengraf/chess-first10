@@ -11,7 +11,7 @@ CLIENT_ID = "1030435771551-qnikf54b4jhlbdmm4bkhst0io28u11s4.apps.googleuserconte
 # Initialize DynamoDB client
 dynamodb = boto3.resource('dynamodb')
 TABLE_NAME = os.environ.get('TABLE_NAME', 'chess-first10')
-table = dynamodb.Table(table_name) 
+table = dynamodb.Table(TABLE_NAME) 
 
 def handler(event, context):
     print(event)
