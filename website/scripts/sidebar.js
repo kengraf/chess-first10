@@ -1,5 +1,5 @@
 // Globals
-import { _globals } from './first10.js';
+import { _globals, _user } from './first10.js';
 
 import * as GameData from './gameData.js';
 import * as Board from './board.js';
@@ -23,34 +23,30 @@ export function init() {
 
 let gamesPlayed = 0;
 let gradeColors = {"best":"Blue", "good":"Green",
-"ok":"Green", "unpopular":"Yellow", "unseen":"Red"};
+"ok":"Green", "irregular":"Yellow", "miss":"Red"};
 let sessionResults = {"blue":0, "green":0, "yellow":0, "red":0};
-let sessionHistory = [];
-let yourMove = "";
-let bestMove = "";
 
 export function recordResult(notation){
     let grade = setResultsTable(notation);
     sessionResults[grade] += 1;
-    let a = { "${_globals.PGN}": grade };
-    sessionHistory.push(a);
+    if( grade == "red" ) {
+        if (!_user['missed'].includes(_globals.PGN)) {
+            _user['missed'].push(_globals.PGN);
+        }    
+    }
     showTotalsBar();
- }
+}
 
 function explainMove( mode ) {
-    // Drop user move from game PGN
-    const last = _globals.PGN.lastIndexOf(' '); 
-    const pgn = _globals.PGN.substring(0, last);
-
-    
-    let url = "https://www.google.com/search?q=explain why move ";
+    const pgn = _globals.PGN;
+    const url = "https://www.google.com/search?q=explain why move ";
     let move = "";
     let modifier = "";
     if( mode == "best" ) {
-        move = bestMove; 
+        move =_globals.bestMove; 
         modifier = " is the best move after: ";
     } else {
-        move = yourMove; 
+        move = _globals.yourMove; 
         modifier = " is aa sub-optimal move after: ";   
     }
     window.open( url+move+modifier+pgn, '_blank' );
@@ -107,11 +103,10 @@ function setResultsTable(notation) {
     show("messageBox","result-"+gradeId,"block");
     show("container-sb-body","sb-body-result","flex");
     
-    _globals.bestMove = _globals.peekSteps[0].Move
-    if(notation == _globals.bestMove) {
-        triggerFireworks();
-    }
-    yourMove = notation;
+    // If user move is best trigger fireworks
+    ifBestTriggerFireworks(notation);
+    
+    _globals.yourMove = notation;
 
     return gradeId;
 }
@@ -139,9 +134,7 @@ export function highlightCrown(crown) {
 
 
 function copyPGN() {
-  navigator.clipboard.writeText(_globals.PGN).then(() => {
-    alert("PGN copied!");
-  });
+  navigator.clipboard.writeText(_globals.PGN);
 }
 
 function pickColor(color){
@@ -156,7 +149,7 @@ function newGame() {
     let moves = GameData.getOpening();
 
 //TBD TESTING: moves = ['e4', ... ];
-
+// bad arrow when playing Ne3    moves=['e4','c6','d4','d5','Nc3','dxe4','Nxe4','Nd7','Bc4','Ngf6'];
     Board.initializeBoard();
     _globals.nextNode = 0;
     _globals.PGN = "";
@@ -174,8 +167,7 @@ function populateUserProfile() {
     const img = document.getElementById('profileImage');
     img.style.display = "block";
     
-    const imageUrl = _globals.user["pictureurl"];
-    img.src = imageUrl;
+    img.src = _user["idInfo"]["picture"];
     img.class = "profileImage";
     img.alt = "Show personal history";
    
@@ -184,7 +176,7 @@ function populateUserProfile() {
     });
 
     img.addEventListener('error', (e) => {
-        console.error('Image failed to load:', imageUrl, e);
+        console.error('Image failed to load:', img.src, e);
     });
     
     img.addEventListener("click", () => {
@@ -236,9 +228,17 @@ document.getElementById('newGameBtn').addEventListener('click', () => {
 document.getElementById('select-white').addEventListener('click', () => {
     pickColor('white');
 });
-document.getElementById('toggleReplayGames').addEventListener('click', () => {
-    _globals.replayGames = !_globals.replayGames;
+
+const buttons = document.querySelectorAll('.replay-button');
+buttons.forEach(button => {
+  button.addEventListener('click', () => {
+      const newState = button.dataset.state;
+      buttons.forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+      _globals.Replay = newState;
+  });
 });
+
 document.getElementById('toggleSounds').addEventListener('click', () => {
     _globals.playSounds = !_globals.playSounds;
 });
@@ -265,6 +265,10 @@ document.getElementById('themeToggle').addEventListener('change', function() {
 
 async function loadChessOpenings() {
     const dropdown = document.getElementById('opening-names-dropdown');
+    const allOption = document.createElement('option');
+    allOption.text = "*** all openings ***";
+    allOption.value = "*";
+    dropdown.add(allOption);
     const url = 'data/opening-names-eco.json';
 
     try {
@@ -310,7 +314,11 @@ function explainWithGoogle() {
     window.open(url, '_blank');
 }
 
-function triggerFireworks() {
+function ifBestTriggerFireworks(userMove) {
+    _globals.bestMove = _globals.peekSteps[0].Move
+    if(userMove != _globals.bestMove) {
+        return;
+    }
     confetti({ particleCount: 100,  spread: 70,
     origin: { y: 0.6 }
     });
@@ -395,17 +403,18 @@ function setCurrentEcoCode(code) {
     _globals.nextNode = 0;
     const eco = _globals.ecoOpenings.find(opening => opening.eco === code);
     
-    let moves = eco.moves.split(/[. ]/);
-    while (moves.length) {
-      moves.shift(); // discard number
-      _globals.ecoMoves.push(moves[0]);
-      GameData.incrementNode(moves[0]);
-      moves.shift();
-      if( moves.length == 0 ) break;
-       _globals.ecoMoves.push(moves[0]);
-      GameData.incrementNode(moves[0]);
-      moves.shift();
-    }
+    let moves = eco['moves']
+        .trim()
+        .replace(/[.]/g, ' ')
+        .split(/\s+/)
+        .filter(item => {
+            return item && !/^\d+/.test(item);
+        });
+    moves.forEach(move => {
+        _globals.ecoMoves.push(move);
+        GameData.incrementNode(move);
+    });
+
     displayGamesCount(_globals.nextNode);
 }
 

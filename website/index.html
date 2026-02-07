@@ -93,8 +93,19 @@
             <div id="select-black" class="crown-container" >
               <img src="/images/bk.png" title="Play Black" class="crown-icon">
             </div>
-
         </div>
+        
+          <div class="sb-bodyPart">
+            <labeL>Replay misses: </label>
+            <div class="button-group">
+              <button class="replay-button active" data-state="never">Never</button>
+          
+              <button class="replay-button" data-state="random">Random</button>
+          
+              <button class="replay-button" data-state="always">Always</button>
+            </div>
+          </div>
+        
           <div class="sb-bodyPart">
           <label>Moves: </label>
           <div class="range-selector">
@@ -128,13 +139,7 @@
               <span class="slider onOff"></span>
             </label>
           </div>
-          <div class="sb-bodyPart">
-            <labeL>Replay missed games: </label>
-            <label class="switch">
-              <input type="checkbox" id="toggleReplayGames">
-              <span class="slider onOff"></span>
-            </label>
-          </div>
+
 
           <div class="sb-bodyPart">
             <labeL>Highlight landing squares: </label>
@@ -155,7 +160,7 @@
         <div class="copy-pgn">
           <input type="text" id="copyPGN" style="width:90%;"value="" readonly>
           <button class="copy-btn" id="copyPGN-btn" aria-label="Copy">
-            📋
+              <img src="images/copy.png" alt="Copy PGN">
           </button>
         </div>
         <hr>
@@ -193,13 +198,13 @@
 
       <div id="sb-body-profile" class="container-sb-body">
 <!-- TBDs
-show
-games played
-result was best/good/played/unplayed
-replay to improve, none, add to random, only ewplay
-sessions
-delete history
-logout
+sessions table
+  date | bgyr | count
+buttons 4-across  (with status message below)
+  clear missed games
+  delete history
+  save session
+  logout
 -->
       </div>
       <div id="sb-body-playing" class="container-sb-body">

@@ -39,14 +39,14 @@ html, body {
 }
 
 h1, h2, h3, p {
-  color: var(--theme-light-color) !important;
+  color: var(--theme-light-color);
   font-family: var(--font-family);
   margin: 0;
 }
 
 hr {
     border: none; 
-    border-top: 2px solid #aaa !important; 
+    border-top: 2px solid #aaa;
     margin: 2px 0; 
     height: 2px;
     width: 70%;
@@ -600,7 +600,7 @@ input[type="range"]::-moz-range-thumb {
 .switch {
   position: relative;
   display: inline-block;
-  width: 50px;
+  width: 40px;
   height: 20px;
 }
 
@@ -644,7 +644,7 @@ input:checked + .slider {
 
 /* Move the knob when checked */
 input:checked + .slider:before {
-  transform: translateX(28px);
+  transform: translateX(18px);
 }
 
 .left-textOn {
@@ -704,6 +704,10 @@ input:checked + .slider:before {
   opacity: 0.8;
 }
 
+.resultsTable {
+      overflow-y: auto;
+}
+
 /* ------  Best move arrow ------- */
 .arrow {
   position: absolute;
@@ -725,3 +729,52 @@ input:checked + .slider:before {
 .arrow:hover {
   filter: brightness(1.2);
 }
+
+/* ------------- Replay button --------------- */
+  .button-group {
+    display: flex;
+    gap: 1px;
+    align-items: center;
+  }
+
+  .replay-button {
+    width: 70px;
+    height: 22px;
+    border-radius:  8px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.15);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    margin: 0px;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.replay-button:hover:not(.active) {
+    border-color: rgba(255, 255, 255, 0.5);
+  background-color: var(--color-blue-vibrant);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+
+  .replay-button:active:not(.active) {
+    transform: translateY(0);
+  }
+
+  .replay-button.active {
+    background: var(--color-green-muted);
+    border: 3px solid var(--color-yellow-vibrant);
+    color: white;
+    transform: scale(1.05);
+}
+
+  .replay-button.active:hover {
+    background-color: var(--color-blue-vibrant);
+    transform: scale(1.05);
+  }

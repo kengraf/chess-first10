@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Replay Settings</title>
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+ /*
+ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+ */
+ }
+
+  .button-group {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .replay-button {
+    width: 80px;
+    height: 20px;
+    border-radius:  8px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.15);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+  .replay-button:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+
+  .replay-button:active:not(.active) {
+    transform: translateY(0);
+  }
+
+  /* Active state - green background with yellow border */
+  .replay-button.active {
+    background: #22c55e;
+    border: 3px solid #fbbf24;
+    color: white;
+    transform: scale(1.05);
+}
+
+  .replay-button.active:hover {
+    transform: scale(1.05);
+  }
+</style>
+</head>
+<body>
+
+<div class="control-container">
+  <div class="label">
+    Replay misses: <span class="label-value" id="currentState">randomly</span>
+  </div>
+  
+  <div class="button-group">
+    <button class="state-button" data-state="never">
+      Never
+    </button>
+
+    <button class="state-button active" data-state="random">
+      Randomly
+    </button>
+
+    <button class="state-button" data-state="always">
+      Always
+    </button>
+  </div>
+</div>
+
+<script>
+  const buttons = document.querySelectorAll('.state-button');
+  const currentStateLabel = document.getElementById('currentState');
+  let currentState = 'random'; // Initial state
+
+  buttons.forEach(button => {
+    button.addEventListener('click', () => {
+      const newState = button.dataset.state;
+      
+      // Remove active class from all buttons
+      buttons.forEach(btn => btn.classList.remove('active'));
+      
+      // Add active class to clicked button
+      button.classList.add('active');
+      
+      // Update current state
+      currentState = newState;
+      
+      // Update label
+      currentStateLabel.textContent = newState;
+      
+    });
+  });
+</script>
+
+</body>
+</html>

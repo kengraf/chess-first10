@@ -15,7 +15,8 @@ let _game = {
 
 export function playMove(notation,isUserMove) {
     if( notation == null ) return;
-
+    
+    _globals.userMove = isUserMove;
     _move.notation = notation;
     _move.WorB = _game.WorB;
       // Handle the castling special case

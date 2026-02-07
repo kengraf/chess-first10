@@ -11,7 +11,7 @@ _globals.boardTheme = "classic";
 _globals.pgnURL = "data/first10.pgn";
 _globals.minimumTurns = 1;
 _globals.maximumTurns = 10;
-_globals.PGN = ""; // local instead?
+_globals.PGN = "";
 _globals.FEN = "";
 _globals.nextNode = 0;
 _globals.steps = [];
@@ -20,13 +20,14 @@ _globals.playingAs = "white";
 _globals.preferColor = "white";
 _globals.sessionCookie = "";
 _globals.userCookie = "";
-_globals.user = {"name":"", "email":"", "pictureurl":"","sub":"", "uuid":""};
 _globals.showBestArrow = false;
 _globals.playSounds = false;
-_globals.replayGames = false;
+_globals.replay = "never";
 _globals.showHighlights = false;
 _globals.bestMove = "";
 _globals.ecoMoves = [];
+
+export let _user={};
 
 // ---------- Code to run the game -------------
 function init() {
@@ -78,14 +79,11 @@ export function openingActions() {
 	
 	// Save session when user leaves window
 	document.addEventListener('visibilitychange', function () {
-		if (document.visibilityState != 'hidden') return;
-
-		const analyticsData_TBD = {
-			event: 'user_left_page',
-			timestamp: Date.now()
-		};
-
-		navigator.sendBeacon('/v1/databaseItems?user={sub}', JSON.stringify(analyticsData));
+		if (document.visibilityState == 'hidden')  {
+			let s = sessionResults;
+			s["date"] = Date.now();
+			_user.sessions.push(s);
+			navigator.sendBeacon('/v1/databaseItems', JSON.stringify(_user));
 	});
 
 }
@@ -139,7 +137,7 @@ async function handleLocalCredential() {
 	}
 	
 	let text = await response.text();
-	_globals.user = JSON.parse(text);
+	_user = JSON.parse(text).body;
 	openingActions();
 }
 
@@ -162,7 +160,7 @@ function handleCredentialResponse(response) {
 	})
 	.then(data => {
 		console.log('Data fetched:', data);
-		_globals.userCookie = data["uuid"];
+		_globals.userCookie = data["sub"];
 	})
 	.catch(error => {
 		console.error('Error verifying token:', error);

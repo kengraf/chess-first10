@@ -1,4 +1,4 @@
-import { _globals } from './first10.js';
+import { _globals, _user } from './first10.js';
 
 import * as Sidebar from './sidebar.js'
 
@@ -42,7 +42,7 @@ function add_game_step(notation) {
 	}
 	_globals.steps.push(notation);
 	incrementNode(notation);
-	_globals.PGN += `${notation} `;
+		_globals.PGN += `${notation} `;
 
 }
 
@@ -78,6 +78,27 @@ function randomGame(steps) {
 	let iNode = 0;
 	let move = 1;
 	let ecoMoves = _globals.ecoMoves;
+	
+	let replay = false;
+	if(_globals.Replay == 'random' ) 
+		replay = Math.random() < 0.5;
+	if(_globals.Replay == 'always')
+		replay = true;
+	if(replay) {
+		const randomIndex = Math.floor(Math.random() * _user.missed.length);
+		const replayPGN = _user.missed.splice(randomIndex, 1)[0];
+		const replaySteps = replayPGN
+			.trim()
+			.replace(/[.]/g, ' ')
+			.split(/\s+/)
+			.filter(item => {
+				return item && !/^\d+$/.test(item);
+			});
+		replaySteps.forEach(step => {
+			add_game_step(step);
+		});
+		return _globals.steps;
+	}
 	
 	for (let i = 0; i < steps; i++) {
 		if( ecoMoves.length > i ) {
