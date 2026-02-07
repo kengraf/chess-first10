@@ -30,17 +30,29 @@ def handler(event, context):
         # Call Google service to validate JWT
         idinfo = id_token.verify_oauth2_token(token, Grequests.Request(), CLIENT_ID)
         sub = idinfo['sub']
-        email = idinfo['email']
         user_uuid = str(uuid.uuid4())
-        name = email.split('@')[0]
-        pic_url = idinfo['picture']
        
-        # Update the hunters table       
-        table.put_item(Item={"name":name, "email": email, 
-                             "pictureurl": pic_url,
-                             "sub":sub, "uuid": user_uuid})
+        # Update the table       
+        response = table.update_item(
+                Key={'sub': sub},
+                UpdateExpression="""
+                    SET #it = :id_info,
+                        sessions = list_append(if_not_exists(sessions, :empty_list), :s),
+                        missed = :m
+                """,
+                ExpressionAttributeNames={
+                    '#it': 'idInfo'  # Use alias because 'idInfo' might be fine, but safe practice
+                    },
+                ExpressionAttributeValues={
+                    ':idInfo': id_info,
+                    ':s': new_sessions,
+                    ':m': new_missed,
+                    ':empty_list': []
+                    },
+                ReturnValues="UPDATED_NEW"
+            )
         
-        body = json.dumps({"message": "Session created", "idToken": idinfo, "uuid":user_uuid})
+        body = json.dumps({"message": "Session created", "idInfo": idinfo, "uuid":user_uuid})
         return {
             "cookies": [
                 f"session={user_uuid}; Secure=true; SameSite=Lax; Path=/",

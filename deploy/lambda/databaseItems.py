@@ -13,7 +13,7 @@ def handler(event, context):
 	# 1. Parse the incoming body
 	body = event.get('body', '{}')
 	sub = body.get('sub')
-	id_token = body.get('idToken')
+	id_info = body.get('idInfo')
 	new_sessions = body.get('sessions', [])
 	new_missed = body.get('missed', [])
 
@@ -25,15 +25,15 @@ def handler(event, context):
 	response = table.update_item(
 	    Key={'sub': sub},
 	    UpdateExpression="""
-                SET #it = :id_token,
+                SET #it = :id_info,
                     sessions = list_append(if_not_exists(sessions, :empty_list), :s),
                     missed = :m
             """,
 	    ExpressionAttributeNames={
-	        '#it': 'idToken'  # Use alias because 'idToken' might be fine, but safe practice
+	        '#it': 'idInfo'  # Use alias because 'idInfo' might be fine, but safe practice
 	        },
 	    ExpressionAttributeValues={
-	        ':id_token': id_token,
+	        ':idInfo': id_info,
 	        ':s': new_sessions,
 	        ':m': new_missed,
 	        ':empty_list': []
@@ -55,7 +55,7 @@ def handler(event, context):
 
 if __name__ == "__main__":
     try:
-	event = { "body": { "sub": "123abc", "idToken": { "name": "bob", "email": "bob@bob.com"}, "sessions": [ {"date": "11111", "blue": "10", "green": "20",   "yellow": "30", "red": "40" }],  "missed": ["1.e4 e5", "1.d4 d5"] }}
+	event = { "body": { "sub": "123abc", "idInfo": { "name": "bob", "email": "bob@bob.com"}, "sessions": [ {"date": "11111", "blue": "10", "green": "20",   "yellow": "30", "red": "40" }],  "missed": ["1.e4 e5", "1.d4 d5"] }}
 	print( handler(event, 0) )
     except Exception as e:
 	print( str(e) )
@@ -63,6 +63,6 @@ if __name__ == "__main__":
 """  CLI example
 curl -X POST https://chess-first10.kengraf.com/v1/databaseItems \
      -H 'Content-Type: application/json' \
-     -d '{ "body": { "sub": "123abc", "idToken": { "name": "bob", "email": "bob@bob.com"}, "sessions": [ {"date": "11111", "blue": "10", "green": "20",   "yellow": "30", "red": "40" }],  "missed": ["1.e4 e5", "1.d4 d5"] }}'
+     -d '{ "body": { "sub": "123abc", "idInfo": { "name": "bob", "email": "bob@bob.com"}, "sessions": [ {"date": "11111", "blue": "10", "green": "20",   "yellow": "30", "red": "40" }],  "missed": ["1.e4 e5", "1.d4 d5"] }}'
 
 """
