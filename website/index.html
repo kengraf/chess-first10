@@ -197,15 +197,27 @@
     </div>
 
       <div id="sb-body-profile" class="container-sb-body">
-<!-- TBDs
-sessions table
-  date | bgyr | count
-buttons 4-across  (with status message below)
-  clear missed games
-  delete history
-  save session
-  logout
--->
+        <div>
+          <table id="sessionsTable">
+            <thead>
+              <!-- js completes -->
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <hr>
+        <div id="sb-profile-buttons" class="sb-bodyPart">
+          <button id="clearMissed" class="sb-button button explain">
+          Clear all<br>Missed games</button>
+          <button id="deleteHistory" class="sb-button button explain" style="flex:1">
+          Delete <br>History</button>
+          <button id="saveSession" class="sb-button button explain">
+          Save current<br>session</button>
+          <button id="logout" class="sb-button button explain" style="flex:1">
+          Logout</button>
+        </div>
+        <label id="profilelabel"></label>
+
       </div>
       <div id="sb-body-playing" class="container-sb-body">
           <div class="container-playAs white2play" id="white">

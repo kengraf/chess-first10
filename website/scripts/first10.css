@@ -66,7 +66,7 @@ hr {
   align-items: center;
   display: flex;
   flex-direction: column;
-  heigth: 100%;
+  height: 100%;
   justify-content: center;
 }
 
@@ -536,6 +536,7 @@ input[type="range"] {
     width: 100%;
     /* Hide default styles */
     -webkit-appearance: none;
+    appearance: none;
     background: none;
     pointer-events: none;
 }
@@ -704,7 +705,7 @@ input:checked + .slider:before {
   opacity: 0.8;
 }
 
-.resultsTable {
+.resultsTable .sessionsTable {
       overflow-y: auto;
 }
 

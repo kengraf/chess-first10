@@ -84,6 +84,7 @@ export function openingActions() {
 			s["date"] = Date.now();
 			_user.sessions.push(s);
 			navigator.sendBeacon('/v1/databaseItems', JSON.stringify(_user));
+		}
 	});
 
 }

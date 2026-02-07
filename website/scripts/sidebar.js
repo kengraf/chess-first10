@@ -57,6 +57,23 @@ function addToSession(grade, pgn) {
     updateSidebarSession(grade);
 }
 
+function setSessionsTable() {
+    const thead = document.querySelector("#sessionTable thead");
+    thead.innerHTML = `<tr>Date<th></th><th>Results</th><th>Games</th></tr>`;
+        
+    const tbody = document.querySelector("#sessionsTable tbody");
+    tbody.innerHTML = "";
+        
+    _user.sessions.forEach(item => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${item.date}</td>
+          <td>${item.Move}</td>
+          <td>${item.percent}%</td>
+        `;
+        tbody.appendChild(row);
+      });
+}
 
 function setResultsTable(notation) {
     const data = _globals.peekSteps;

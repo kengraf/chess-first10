@@ -31,6 +31,8 @@ def handler(event, context):
         idinfo = id_token.verify_oauth2_token(token, Grequests.Request(), CLIENT_ID)
         sub = idinfo['sub']
         user_uuid = str(uuid.uuid4())
+        new_sessions = []
+        new_missed = []
        
         # Update the table       
         response = table.update_item(
@@ -44,7 +46,7 @@ def handler(event, context):
                     '#it': 'idInfo'  # Use alias because 'idInfo' might be fine, but safe practice
                     },
                 ExpressionAttributeValues={
-                    ':idInfo': id_info,
+                    ':idInfo': idinfo,
                     ':s': new_sessions,
                     ':m': new_missed,
                     ':empty_list': []
