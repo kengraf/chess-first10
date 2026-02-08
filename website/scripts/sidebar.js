@@ -13,7 +13,7 @@ export function init() {
     updateSlider();
     loadEcoOpenings();
     loadChessOpenings();
-
+    setSessionsTable();
 
     minSlider.addEventListener('input', updateSlider);
     maxSlider.addEventListener('input', updateSlider);
@@ -34,7 +34,8 @@ export function recordResult(notation){
             _user['missed'].push(_globals.PGN);
         }    
     }
-    showTotalsBar();
+    showTotalsBar(sessionResults, "resultsBar");
+    setSessionsTable();
 }
 
 function explainMove( mode ) {
@@ -57,22 +58,38 @@ function addToSession(grade, pgn) {
     updateSidebarSession(grade);
 }
 
+function getSessionCount(session) {
+    let cnt = 0;
+    const color = ["blue", "green","yellow","red"];
+    Object.keys(session).forEach(key => {
+        if( color.includes(key) )
+            cnt += parseInt(session[key]);
+    });
+    return cnt;
+}
+
 function setSessionsTable() {
-    const thead = document.querySelector("#sessionTable thead");
-    thead.innerHTML = `<tr>Date<th></th><th>Results</th><th>Games</th></tr>`;
+    const thead = document.querySelector("#sessionsTable thead");
+    thead.innerHTML = '<tr><th>Results</th><th>Games</th></tr>';
         
     const tbody = document.querySelector("#sessionsTable tbody");
     tbody.innerHTML = "";
         
+    setSessionRow(sessionResults, tbody);
     _user.sessions.forEach(item => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${item.date}</td>
-          <td>${item.Move}</td>
-          <td>${item.percent}%</td>
-        `;
+        setSessionRow(item, tbody);
+    });
+}
+
+function setSessionRow(item, tbody) {
+    const row = document.createElement("tr");
+    const b= `<div class="resultsBar" style="width:100%" id=bar-${item.date}></div>`;
+    const c= getSessionCount(item);
+    if( c > 0 ) {
+        row.innerHTML = `<td style="padding:8px 0px" >${b}</td><td>${c}</td>`;
         tbody.appendChild(row);
-      });
+        showTotalsBar(item,`bar-${item.date}`);
+    }
 }
 
 function setResultsTable(notation) {
@@ -200,6 +217,16 @@ function populateUserProfile() {
         show("container-sb-body","sb-body-profile","flex");
     });
 }
+
+// Save session when user leaves window
+document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState == 'hidden')  {
+        let s = sessionResults;
+        s["date"] = Date.now();
+        _user.sessions.push(s);
+        navigator.sendBeacon('/v1/databaseItems', JSON.stringify(_user));
+    }
+});
 
 document.getElementById('ecoInput').addEventListener('input', () => { setCurrentEcoCode(event.target.value); });
   
@@ -441,42 +468,28 @@ export function displayGamesCount(node = 0) {
     let cnt = data.reduce((sum, item) => sum + item.Count, 0);
     let label = document.getElementById( "gamesCount");
     label.innerHTML = `${cnt.toLocaleString()} games available`;
-    
-/*
-    data.forEach(opening => {
-      console.log(`${opening.eco}: ${opening.name}`);
-      console.log(`Moves: ${opening.moves}`);
-    });
-    
-
-    
-    // Example: Filter by name
-    const englishOpenings = data.filter(opening => 
-      opening.name.includes('English')
-    );
-    console.log(englishOpenings);
-*/
 }
 
 /* ----- Results bar -----*/
-function showTotalsBar() {
-    const total = Object.values(sessionResults).reduce((sum, val) => sum + val, 0);
+function showTotalsBar(results, barId) {
+    const total = getSessionCount(results);
 
-    const bar = document.getElementById('resultsBar');
+    const bar = document.getElementById(barId);
     bar.innerHTML = '';
-    Object.entries(sessionResults).forEach(([color, value]) => {
-      if (value > 0) {
-        const percentage = (value / total) * 100;
-        
-        const segment = document.createElement('div');
-        segment.className = 'resultsSegment';
-        segment.style.backgroundColor = color;
-        if( color == "yellow" )
-            segment.style.color = "black";
-        segment.style.width = percentage + '%';
-        segment.textContent = value;
-        segment.title = `${color}: ${value} (${percentage.toFixed(1)}%)`;
-        bar.appendChild(segment);
-      }
+    Object.entries(results).forEach(([color, value]) => {
+        if( color == "date" ) return;
+        if (value > 0) {
+            const percentage = (value / total) * 100;
+            
+            const segment = document.createElement('div');
+            segment.className = 'resultsSegment';
+            segment.style.backgroundColor = color;
+            if( color == "yellow" )
+                segment.style.color = "black";
+            segment.style.width = percentage + '%';
+            segment.textContent = value;
+            segment.title = `${color}: ${value} (${percentage.toFixed(1)}%)`;
+            bar.appendChild(segment);
+        }
     });
 }

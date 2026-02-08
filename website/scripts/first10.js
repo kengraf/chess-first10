@@ -76,17 +76,6 @@ export function openingActions() {
 
 	// Generate sidebar and UI elements
 	Sidebar.init('container-sb');
-	
-	// Save session when user leaves window
-	document.addEventListener('visibilitychange', function () {
-		if (document.visibilityState == 'hidden')  {
-			let s = sessionResults;
-			s["date"] = Date.now();
-			_user.sessions.push(s);
-			navigator.sendBeacon('/v1/databaseItems', JSON.stringify(_user));
-		}
-	});
-
 }
 
 

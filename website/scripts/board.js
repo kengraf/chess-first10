@@ -42,7 +42,7 @@ export function playMove(notation,isUserMove) {
         await sleep( _move.delay * 1000 );
 */
     _game.WorB = _move.WorB = (_move.WorB == 'w') ? "b" : "w";
-    GameData.updateNode(notation);
+    GameData.updateNode(notation,isUserMove);
     if( isUserMove ) {
         Sidebar.recordResult(notation);
         if( _globals.showBestArrow ) {
@@ -921,7 +921,7 @@ function pieceImageAdd( piece, square) {
     let theme = _globals.boardTheme;
     img.className = "piece";
     img.setAttribute("data-group", piece);
-    img.setAttribute("src", `/images/${theme}/${piece}.png` );
+    img.setAttribute("src", `./images/${theme}/${piece}.png` );
     container.appendChild(img);
     return img;
 }
@@ -1020,7 +1020,7 @@ export function initializeBoard() {
             sqName += ((rank+file)%2 == 0 ) ? "/darkSquare" : "/lightSquare";
             if(file == 0)sqName += `${gridRanks[rank]}`;
             if(rank == 0)sqName += `${gridFiles[file]}`;
-            img = `url('/images/${sqName}.png')`;
+            img = `url('./images/${sqName}.png')`;
            
             child.style.background = img;
             child.style.backgroundSize = "cover";

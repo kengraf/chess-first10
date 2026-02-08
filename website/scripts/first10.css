@@ -54,8 +54,8 @@ hr {
 
 .container-board {
     flex-shrink: 0;
-    width: min(calc(100vh), calc(100vw - 270px));
-    height: min(calc(100vh), calc(100vw - 270px));
+    width: min(calc(100vh), calc(100vw - 300px));
+    height: min(calc(100vh), calc(100vw - 300px));
     display: flex;
     justify-content: center;
     align-items: center;
@@ -182,6 +182,8 @@ hr {
   border: none;
   cursor: pointer;
   font-size: 16px;
+  height: 24px;
+  width: 18px;
   padding: 3px 3px;
   margin: 0px;
 }
@@ -309,8 +311,8 @@ container-sb {
   place-items: center; 
   position: fixed;
   top: 0;
-  width: min(calc(100vh), calc(100vw - 270px));
-  height: min(calc(100vh), calc(100vw - 270px));
+  width: min(calc(100vh), calc(100vw - 300px));
+  height: min(calc(100vh), calc(100vw - 300px));
   z-index: 99;
 }
 
@@ -705,9 +707,11 @@ input:checked + .slider:before {
   opacity: 0.8;
 }
 
-.resultsTable .sessionsTable {
-      overflow-y: auto;
+#resultTable #sessionsTable {
+  height: 100%;
+  overflow-y: auto;
 }
+
 
 /* ------  Best move arrow ------- */
 .arrow {

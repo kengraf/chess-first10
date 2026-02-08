@@ -76,7 +76,7 @@
             />
         </div> 
         <div class="sb-bodyPart">
-          <label id="gamesCount">?? games available</label>
+          <label id="gamesCount">(waiting)loading games</label>
         </div>
         <hr>
         <div class="sb-bodyPart">
@@ -159,8 +159,8 @@
       <div id="sb-body-result" class="container-sb-body">
         <div class="copy-pgn">
           <input type="text" id="copyPGN" style="width:90%;"value="" readonly>
-          <button class="copy-btn" id="copyPGN-btn" aria-label="Copy">
-              <img src="images/copy.png" alt="Copy PGN">
+          <button class="copy-btn" id="copyPGN-btn">
+              <img src="images/copy.png" style="width:13px; height:20px;" alt="Copy PGN">
           </button>
         </div>
         <hr>
@@ -197,8 +197,12 @@
     </div>
 
       <div id="sb-body-profile" class="container-sb-body">
-        <div>
-          <table id="sessionsTable">
+        <div style="width:95%;">
+          <table id="sessionsTable" >
+            <colgroup>
+              <col style="width: 80%;">
+              <col>
+            </colgroup>
             <thead>
               <!-- js completes -->
             </thead>
@@ -208,11 +212,11 @@
         <hr>
         <div id="sb-profile-buttons" class="sb-bodyPart">
           <button id="clearMissed" class="sb-button button explain">
-          Clear all<br>Missed games</button>
+          Clear<br>Missed</button>
           <button id="deleteHistory" class="sb-button button explain" style="flex:1">
-          Delete <br>History</button>
+          Delete<br>History</button>
           <button id="saveSession" class="sb-button button explain">
-          Save current<br>session</button>
+          Save<br>session</button>
           <button id="logout" class="sb-button button explain" style="flex:1">
           Logout</button>
         </div>

@@ -29,10 +29,11 @@ export function getOpening() {
 	if( _globals.playingAs == "black" ) {
 		steps++;
 	}
-	Sidebar.show("container-playAs",_globals.playingAs,"flex");
 
 	Sidebar.displayGamesCount();
-	return randomGame(steps);  // Constrained by ECO values
+	const moves = randomGame(steps);  // Constrained by ECO values
+	Sidebar.show("container-playAs",_globals.playingAs,"flex");
+	return moves;
 }
 
 function add_game_step(notation) {
@@ -60,12 +61,14 @@ export function incrementNode(notation) {
 	_globals.nextNode = NODES[_globals.nextNode].steps[notation];
 }
 
-export function updateNode(notation) {
+export function updateNode(notation,isUserMove=false) {
 
 	setPeekSteps(_globals.nextNode);
 	if( notation in NODES[_globals.nextNode].steps) {
 		// Known move choice by user
-		add_game_step(notation);
+		if( !isUserMove ) {
+			add_game_step(notation);
+		}
 	}
 }
 	
@@ -84,7 +87,7 @@ function randomGame(steps) {
 		replay = Math.random() < 0.5;
 	if(_globals.Replay == 'always')
 		replay = true;
-	if(replay) {
+	if(replay && _user.missed.length > 0 ) {
 		const randomIndex = Math.floor(Math.random() * _user.missed.length);
 		const replayPGN = _user.missed.splice(randomIndex, 1)[0];
 		const replaySteps = replayPGN
@@ -97,6 +100,8 @@ function randomGame(steps) {
 		replaySteps.forEach(step => {
 			add_game_step(step);
 		});
+		_globals.playingAs = _globals.steps.length % 2 === 0 ? 'white' : 'black';
+
 		return _globals.steps;
 	}
 	
