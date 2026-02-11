@@ -45,15 +45,6 @@ export function playMove(notation,isUserMove) {
     GameData.updateNode(notation,isUserMove);
     if( isUserMove ) {
         Sidebar.recordResult(notation);
-        if( _globals.showBestArrow ) {
-            let endSq = _move.endSquare.alpha;
-            parseMove(_globals.bestMove);
-            if( _move.endSquare.alpha != endSq ) {
-                let color = (_move.WorB == 'w') ? "b" : "w"; 
-                identifyPiece(color+_move.pieceType);
-                createArrow(_move.startSquare.alpha, _move.endSquare.alpha);
-            }
-        }
     }
     return;
 }
@@ -222,94 +213,6 @@ function getPieceFromNode(node) {
     else
         return null;
 }
-
-window.addEventListener('resize', () => {
-    resizeBoard(window.innerWidth, window.innerHeight);
-});
-
-/* -------------- Move Arrow ----------------  */
-function getSquareCenter(sq) {
-    const element = document.getElementById(sq);
-    const rect = element.getBoundingClientRect();
-
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    return [centerX,centerY];
-}
-
-function createArrow( headSq, tailSq ) {
-  const container = document.getElementById("board");
-
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('class', 'arrow');
-  svg.style.left = '0';
-  svg.style.top = '0';
-  svg.style.width = '100%';
-  svg.style.height = '100%';
-  svg.style.pointerEvents = 'none';
-
-  // Calculate angle and length
-/*  const [sqX1,sqY1] = alpha2index(tailSq);
-  const halfSq = Math.trunc(_squareSize/2);
-  const x1 = (sqX1*_squareSize) + halfSq;
-  const y1 = (sqY1*_squareSize) + halfSq;
-  const [sqX2,sqY2] = alpha2index(headSq);
-  const x2 = (sqX2*_squareSize) + halfSq;
-  const y2 = (sqY2*_squareSize) + halfSq;
-*/
-  const [x1,y1] = getSquareCenter(headSq);
-  const [x2,y2] = getSquareCenter(tailSq);
-  
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-  const angle = Math.atan2(dy, dx);
-  const length = Math.sqrt(dx * dx + dy * dy);
-
-  // Create line
-  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-  line.setAttribute('class', 'arrow-line');
-  line.setAttribute('x1', x1);
-  line.setAttribute('y1', y1);
-  line.setAttribute('x2', x2);
-  line.setAttribute('y2', y2);
-
-  // Create arrowhead
-  const headLength = 25;
-  const headWidth = 20;
-  
-// Shorten the line so arrowhead base aligns with endpoint
-  const adjustedX2 = x2 - headLength * Math.cos(angle);
-  const adjustedY2 = y2 - headLength * Math.sin(angle);
-  
-  line.setAttribute('x2', adjustedX2);
-  line.setAttribute('y2', adjustedY2);
-
-const arrowHead = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-  arrowHead.setAttribute('class', 'arrow-head');
-  
-  // Calculate arrowhead points
-  const p1x = x2;
-  const p1y = y2;
-  const p2x = x2 - headLength * Math.cos(angle) - headWidth * Math.sin(angle);
-  const p2y = y2 - headLength * Math.sin(angle) + headWidth * Math.cos(angle);
-  const p3x = x2 - headLength * Math.cos(angle) + headWidth * Math.sin(angle);
-  const p3y = y2 - headLength * Math.sin(angle) - headWidth * Math.cos(angle);
-  
-  arrowHead.setAttribute('points', `${p1x},${p1y} ${p2x},${p2y} ${p3x},${p3y}`);
-
-  svg.appendChild(line);
-  svg.appendChild(arrowHead);
-  container.appendChild(svg);
-  
-  return svg;
-}
-
-// Clear all arrows
-function clearArrows() {
-  const arrows = document.querySelectorAll('.arrow');
-  arrows.forEach(arrow => arrow.remove());
-}
- 
 
 // ---------- available spaces of a piece --------------
 let _moveTos = [];  // alpha of piece i.e. "a8"
@@ -708,7 +611,13 @@ function moveCastle(notation) {
     }
 }
 
-function parseMove(notation) {
+export function findBestMove() {
+    parseMove(_globals.bestMove);
+    identifyPiece(_move.WorB+_move.pieceType);
+    return [_move.startSquare.alpha, _move.endSquare.alpha];
+}
+
+export function parseMove(notation) {
 
     _move.disambiguate = "";
     _move.promotionPiece = "";
@@ -967,21 +876,30 @@ function clearBoard() {
     }
 }    
 
-function resizeBoard(w,h) {
-    // We want the largest square board without squeezing the sidebar
-    console.log(`Viewport width: ${w}px, height: ${h}px`);
-    w = document.documentElement.clientWidth;
-    h = document.documentElement.clientHeight;
+function resizeBoard() {
+    const container = document.querySelector('.container');
+    const containerRect = container.getBoundingClientRect();
 
-    let r = document.querySelector(':root');
-    let side = document.getElementById('sb-container').offsetWidth;
-    _squareSize = Math.floor(Math.min(w-side,h)/8);
+    let sidebarWidth = 0;
+    if (window.innerWidth > 768) {
+        sidebarWidth = sidebar.classList.contains('collapsed') ? 50 : 300;
+    }
+    
+    const bwidth = containerRect.width - sidebarWidth;
+    const bheight = window.innerHeight;
+    const boardSize = Math.min(bwidth, bheight);
+    const board = document.querySelector('.board');
+    board.style.width = boardSize + 'px';
+    board.style.height = boardSize + 'px';
 
-    var width = (_squareSize*8); 
-    r.style.setProperty('--board-size', `${width}px`);
+     _squareSize = Math.floor(boardSize/8);
+    const r = document.querySelector(':root');
     r.style.setProperty('--square-size', `${_squareSize}px`);
 }
 
+ window.addEventListener('resize', () => {
+    resizeBoard();
+});
 
 // Add audio files, use _audio*.play();
 const _audioMove = new Audio("/audio/move.mp3");
@@ -994,7 +912,7 @@ let _audioResult = null;
 export function initializeBoard() {
     let child, img  = null;
     // Populate the global variables
-    resizeBoard(window.innerWidth, window.innerHeight);
+    resizeBoard();
     clearArrows();
     
     setRanksFiles();
@@ -1074,6 +992,12 @@ export function initializeBoard() {
     resetPieces()
 }
 
+// Clear all arrows
+function clearArrows() {
+  const arrows = document.querySelectorAll('.arrow');
+  arrows.forEach(arrow => arrow.remove());
+}
+ 
 function unhighlightSquare( square, className ) {
     let elements = square.getElementsByClassName(className);
     Array.from(elements).forEach(element => {

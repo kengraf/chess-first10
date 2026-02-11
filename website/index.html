@@ -21,10 +21,11 @@
           </div>
           <div class="splashText">
             <ul>
-              <li>A simple chess game focused on the opening 10 moves.</li>
-              <li>Curated from over 1 million games played by masters.</li>
-              <li>Play black, white, or random.</li>
-              <li>You can optionally focus on common openings.</li>
+              <li>First10 is a simple chess game focused on the opening 10 moves. Curated from over 1.2 million games played by masters. Play black, white, or let the game decide.</li>
+              <li>Get AI explanations for your move and the move made by masters</li>
+              <li>You can optionally focus on common openings and ECO codes.</li>
+              <li>Logins are not required, but if you do. The game will keep track of your success and allow for replaying missed openings.</li>
+              <li>BETA WARNING: This game is in development and may not be fully functional.<a class="s-link yellow" href="https://github.com/kengraf/chess-first10/issues">Report an Issue.</a></li>
             </ul>
           </div>
         </div>
@@ -32,15 +33,15 @@
   </div>
 </div>
 
-<div class="container-window">
-    <div  id="container-board" class="container-board">
-        <div id="board" class="container-grid" >
+<div class="container" id="main-container">
+    <div class="board-wrapper">
+        <div id="board" class="board" >
         <!-- JS generated pieces in initializeBoard() -->
         </div>
     </div>
 
 <!-- Visual sidebar (sb) elements generated in javascript -->
-    <div id="sb-container" class="container-sb">
+    <div id="sidebar" class="sidebar">
       <div id="sb-header" class="container-sb-header">
         <div class="container-row">
           <div id="loginDiv" class="profile-div">
@@ -159,7 +160,7 @@
       <div id="sb-body-result" class="container-sb-body">
         <div class="copy-pgn">
           <input type="text" id="copyPGN" style="width:90%;"value="" readonly>
-          <button class="copy-btn" id="copyPGN-btn">
+          <button class="copy-btn" id="copyPGN-btn" title="Copy to clipboard">
               <img src="images/copy.png" style="width:13px; height:20px;" alt="Copy PGN">
           </button>
         </div>
@@ -242,7 +243,7 @@
   </div>
 
 <script src="scripts/confetti.min.js" defer></script>
-<script src="https://accounts.google.com/gsi/client"></script>
+<script src="https://accounts.google.com/gsi/client" defer></script>
 
 <!-- Page initialization done here -->
 <script type="module" src="scripts/first10.js"></script>

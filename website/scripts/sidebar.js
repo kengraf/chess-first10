@@ -138,13 +138,95 @@ function setResultsTable(notation) {
     show("container-sb-body","sb-body-result","flex");
     
     // If user move is best trigger fireworks
-    ifBestTriggerFireworks(notation);
-    
-    _globals.yourMove = notation;
+     _globals.yourMove = notation;
+    const best = bestMove();
 
+     if( best == notation) {
+        triggerFireworks();
+    } else if( _globals.showBestArrow ) {
+        const moves = _globals.PGN
+            .trim()
+            .replace(/[.]/g, ' ')
+            .split(/\s+/)
+            .filter(item => {
+                return item && !/^\d+$/.test(item);
+            });
+
+        playMoves(moves);
+        _globals.bestMove = best;
+        const sq = Board.findBestMove();
+        createArrow( sq[0], sq[1] );
+    }
     return gradeId;
 }
 
+/* -------------- Move Arrow ----------------  */
+function getSquareCenter(sq) {
+    const element = document.getElementById(sq);
+    const rect = element.getBoundingClientRect();
+
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    return [centerX,centerY];
+}
+
+function createArrow( headSq, tailSq ) {
+  const container = document.getElementById("board");
+
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'arrow');
+  svg.style.left = '0';
+  svg.style.top = '0';
+  svg.style.width = '100%';
+  svg.style.height = '100%';
+  svg.style.pointerEvents = 'none';
+
+  const [x1,y1] = getSquareCenter(headSq);
+  const [x2,y2] = getSquareCenter(tailSq);
+  
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const angle = Math.atan2(dy, dx);
+  const length = Math.sqrt(dx * dx + dy * dy);
+
+  // Create line
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  line.setAttribute('class', 'arrow-line');
+  line.setAttribute('x1', x1);
+  line.setAttribute('y1', y1);
+  line.setAttribute('x2', x2);
+  line.setAttribute('y2', y2);
+
+  // Create arrowhead
+  const headLength = 25;
+  const headWidth = 20;
+  
+// Shorten the line so arrowhead base aligns with endpoint
+  const adjustedX2 = x2 - headLength * Math.cos(angle);
+  const adjustedY2 = y2 - headLength * Math.sin(angle);
+  
+  line.setAttribute('x2', adjustedX2);
+  line.setAttribute('y2', adjustedY2);
+
+const arrowHead = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  arrowHead.setAttribute('class', 'arrow-head');
+  
+  // Calculate arrowhead points
+  const p1x = x2;
+  const p1y = y2;
+  const p2x = x2 - headLength * Math.cos(angle) - headWidth * Math.sin(angle);
+  const p2y = y2 - headLength * Math.sin(angle) + headWidth * Math.cos(angle);
+  const p3x = x2 - headLength * Math.cos(angle) + headWidth * Math.sin(angle);
+  const p3y = y2 - headLength * Math.sin(angle) - headWidth * Math.cos(angle);
+  
+  arrowHead.setAttribute('points', `${p1x},${p1y} ${p2x},${p2y} ${p3x},${p3y}`);
+
+  svg.appendChild(line);
+  svg.appendChild(arrowHead);
+  container.appendChild(svg);
+  
+  return svg;
+}
 
 export function show(className, id, display) { 
     const elements = document.getElementsByClassName(className);
@@ -183,7 +265,13 @@ function newGame() {
     let moves = GameData.getOpening();
 
 //TBD TESTING: moves = ['e4', ... ];
-// bad arrow when playing Ne3    moves=['e4','c6','d4','d5','Nc3','dxe4','Nxe4','Nd7','Bc4','Ngf6'];
+// bad arrow when playing Ne3    
+    moves=['e4','c6','d4','d5','Nc3','dxe4','Nxe4','Nd7','Bc4','Ngf6'];
+    playMoves(moves);
+}
+
+function playMoves( moves) {
+    // moves is an array not a PGN based string
     Board.initializeBoard();
     _globals.nextNode = 0;
     _globals.PGN = "";
@@ -224,7 +312,7 @@ document.addEventListener('visibilitychange', function () {
         let s = sessionResults;
         s["date"] = Date.now();
         _user.sessions.push(s);
-        navigator.sendBeacon('/v1/databaseItems', JSON.stringify(_user));
+        navigator.sendBeacon('/v1/databaseItems', JSON.stringify(tempSession));
     }
 });
 
@@ -358,11 +446,12 @@ function explainWithGoogle() {
     window.open(url, '_blank');
 }
 
-function ifBestTriggerFireworks(userMove) {
+function bestMove() {
     _globals.bestMove = _globals.peekSteps[0].Move
-    if(userMove != _globals.bestMove) {
-        return;
-    }
+    return _globals.bestMove;
+}
+
+function triggerFireworks() {
     confetti({ particleCount: 100,  spread: 70,
     origin: { y: 0.6 }
     });

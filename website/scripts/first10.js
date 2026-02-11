@@ -27,7 +27,10 @@ _globals.showHighlights = false;
 _globals.bestMove = "";
 _globals.ecoMoves = [];
 
-export let _user={};
+export let _user={
+	"idInfo": { "picture": "/images/login.png" },
+	"sessions": [],
+	"missing": []};
 
 // ---------- Code to run the game -------------
 function init() {
@@ -120,14 +123,18 @@ function checkSessionCookies() {
 }
 
 async function handleLocalCredential() {
-	const response = await fetch('/v1/verifyToken');
+	try {
+		const response = await fetch('/v1/verifyToken');
 	
-	if (!response.ok) {
-		throw new Error(`HTTP error! status: ${response.status}`);
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+		
+		let text = await response.text();
+		_user = JSON.parse(text).body;
+	} catch (error) {
+		console.error('Error fetching local credential:', error);
 	}
-	
-	let text = await response.text();
-	_user = JSON.parse(text).body;
 	openingActions();
 }
 

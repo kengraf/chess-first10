@@ -1,112 +1,242 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Replay Settings</title>
-<style>
-  body {
-    margin: 0;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
- /*
- background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
- */
- }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Square Panel with Sidebar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  .button-group {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-  }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+            overflow-x: hidden;
+        }
 
-  .replay-button {
-    width: 80px;
-    height: 20px;
-    border-radius:  8px;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.15);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 13px;
-    font-weight: 600;
-    text-transform: capitalize;
-}
+        .container {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+            gap: 20px;
+            align-items: flex-start;
+        }
 
-  .replay-button:hover:not(.active) {
-    background: rgba(255, 255, 255, 0.25);
-    border-color: rgba(255, 255, 255, 0.5);
-  }
+        .main-panel-wrapper {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
 
-  .replay-button:active:not(.active) {
-    transform: translateY(0);
-  }
+        .main-panel {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #666;
+        }
 
-  /* Active state - green background with yellow border */
-  .replay-button.active {
-    background: #22c55e;
-    border: 3px solid #fbbf24;
-    color: white;
-    transform: scale(1.05);
-}
+        .sidebar {
+            width: 300px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            flex-shrink: 0;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
 
-  .replay-button.active:hover {
-    transform: scale(1.05);
-  }
-</style>
+        .sidebar.collapsed {
+            width: 50px;
+            padding: 20px 10px;
+        }
+
+        .sidebar.collapsed .sidebar-content {
+            display: none;
+        }
+
+        .toggle-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+            z-index: 10;
+        }
+
+        .toggle-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .sidebar.collapsed .toggle-btn {
+            right: 10px;
+        }
+
+        .sidebar-content {
+            margin-top: 40px;
+        }
+
+        .sidebar-content h2 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .sidebar-content p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .sidebar-content ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .sidebar-content li {
+            padding: 8px 0;
+            color: #666;
+            border-bottom: 1px solid #eee;
+        }
+
+        .sidebar-content li:last-child {
+            border-bottom: none;
+        }
+
+        /* Responsive breakpoint: sidebar moves below when container width < main panel width + sidebar width + gaps */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .main-panel-wrapper {
+                width: 100%;
+            }
+
+            .sidebar {
+                width: 100%;
+            }
+
+            .sidebar.collapsed {
+                width: 100%;
+                height: 50px;
+                overflow: hidden;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <div class="main-panel-wrapper">
+            <div class="main-panel" id="mainPanel">
+                Main Panel (Square)
+            </div>
+        </div>
+        
+        <div class="sidebar" id="sidebar">
+            <button class="toggle-btn" id="toggleBtn" aria-label="Toggle sidebar">
+                ☰
+            </button>
+            <div class="sidebar-content">
+                <h2>Sidebar</h2>
+                <p>This is a collapsible sidebar that appears to the right of the main panel when space allows.</p>
+                <ul>
+                    <li>Item 1</li>
+                    <li>Item 2</li>
+                    <li>Item 3</li>
+                    <li>Item 4</li>
+                    <li>Item 5</li>
+                    <li>Item 6</li>
+                    <li>Item 7</li>
+                    <li>Item 8</li>
+                    <li>Item 9</li>
+                    <li>Item 10</li>
+                </ul>
+                <h2>Additional Section</h2>
+                <p>The sidebar has its own scrollbar when content exceeds the window height.</p>
+                <p>This keeps the main panel and overall layout clean while allowing for longer sidebar content.</p>
+                <ul>
+                    <li>Extra item 1</li>
+                    <li>Extra item 2</li>
+                    <li>Extra item 3</li>
+                    <li>Extra item 4</li>
+                    <li>Extra item 5</li>
+                </ul>
+            </div>
+        </div>
+    </div>
 
-<div class="control-container">
-  <div class="label">
-    Replay misses: <span class="label-value" id="currentState">randomly</span>
-  </div>
-  
-  <div class="button-group">
-    <button class="state-button" data-state="never">
-      Never
-    </button>
+    <script>
+        const mainPanel = document.getElementById('mainPanel');
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleBtn');
+        const mainPanelWrapper = document.querySelector('.main-panel-wrapper');
 
-    <button class="state-button active" data-state="random">
-      Randomly
-    </button>
+        // Toggle sidebar collapse
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            toggleBtn.textContent = sidebar.classList.contains('collapsed') ? '☰' : '×';
+            // Recalculate square size after toggle
+            setTimeout(setSquareSize, 300);
+        });
 
-    <button class="state-button" data-state="always">
-      Always
-    </button>
-  </div>
-</div>
+        // Calculate and set the main panel to be the largest possible square
+        function setSquareSize() {
+            const container = document.querySelector('.container');
+            const containerRect = container.getBoundingClientRect();
+            const containerPadding = 40; // 20px on each side
+            const gap = 20;
+            
+            // Get sidebar width (accounting for collapsed state)
+            let sidebarWidth = 0;
+            if (window.innerWidth > 768) {
+                sidebarWidth = sidebar.classList.contains('collapsed') ? 50 : 300;
+            }
+            
+            // Calculate available width for main panel
+            const availableWidth = containerRect.width - containerPadding - (sidebarWidth > 0 ? sidebarWidth + gap : 0);
+            
+            // Calculate available height (viewport height - container padding)
+            const availableHeight = window.innerHeight - containerPadding;
+            
+            // The square size is the minimum of available width and height
+            const squareSize = Math.min(availableWidth, availableHeight);
+            
+            // Set the main panel to be a square
+            mainPanel.style.width = squareSize + 'px';
+            mainPanel.style.height = squareSize + 'px';
+        }
 
-<script>
-  const buttons = document.querySelectorAll('.state-button');
-  const currentStateLabel = document.getElementById('currentState');
-  let currentState = 'random'; // Initial state
+        // Set square size on load and resize
+        window.addEventListener('load', setSquareSize);
+        window.addEventListener('resize', setSquareSize);
 
-  buttons.forEach(button => {
-    button.addEventListener('click', () => {
-      const newState = button.dataset.state;
-      
-      // Remove active class from all buttons
-      buttons.forEach(btn => btn.classList.remove('active'));
-      
-      // Add active class to clicked button
-      button.classList.add('active');
-      
-      // Update current state
-      currentState = newState;
-      
-      // Update label
-      currentStateLabel.textContent = newState;
-      
-    });
-  });
-</script>
-
+        // Also recalculate when sidebar is toggled (handled in toggle event listener)
+    </script>
 </body>
 </html>
