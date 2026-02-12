@@ -38,9 +38,9 @@ def handler(event, context):
         response = table.update_item(
                 Key={'sub': sub},
                 UpdateExpression="""
-                    SET #it = :id_info,
-                        sessions = list_append(if_not_exists(sessions, :empty_list), :s),
-                        missed = :m
+                    SET #it = :idInfo,
+                        sessions = list_append(if_not_exists(sessions, :empty_list),:s),
+                        missed = list_append(if_not_exists(missed, :empty_list),:m)
                 """,
                 ExpressionAttributeNames={
                     '#it': 'idInfo'  # Use alias because 'idInfo' might be fine, but safe practice

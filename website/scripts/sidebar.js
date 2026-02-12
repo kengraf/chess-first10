@@ -312,7 +312,7 @@ document.addEventListener('visibilitychange', function () {
         let s = sessionResults;
         s["date"] = Date.now();
         _user.sessions.push(s);
-        navigator.sendBeacon('/v1/databaseItems', JSON.stringify(tempSession));
+        navigator.sendBeacon('/v1/databaseItems', JSON.stringify( _user.sessions ));
     }
 });
 

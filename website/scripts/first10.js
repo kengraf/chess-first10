@@ -30,7 +30,7 @@ _globals.ecoMoves = [];
 export let _user={
 	"idInfo": { "picture": "/images/login.png" },
 	"sessions": [],
-	"missing": []};
+	"missed": []};
 
 // ---------- Code to run the game -------------
 function init() {
