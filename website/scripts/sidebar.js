@@ -266,7 +266,7 @@ function newGame() {
 
 //TBD TESTING: moves = ['e4', ... ];
 // bad arrow when playing Ne3    
-    moves=['e4','c6','d4','d5','Nc3','dxe4','Nxe4','Nd7','Bc4','Ngf6'];
+//    moves=['e4','c6','d4','d5','Nc3','dxe4','Nxe4','Nd7','Bc4','Ngf6'];
     playMoves(moves);
 }
 

@@ -328,7 +328,7 @@ hr {
 }
 
 .text-input {
-  backgroud: black;
+  background: black;
   color: white;
 }
 
@@ -560,12 +560,13 @@ button:hover {
   height: var(--square-size);
   z-index: 9;
   visibility: hidden;
+  background-color: transparent !important;
 }
 
 .piece {
   top: 0;
   left: 0;
-  background-color: transparent;
+  background-color: transparent !important;
   width: var(--square-size);
   height: var(--square-size);
   z-index: 8;
