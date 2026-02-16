@@ -4,6 +4,7 @@
 <head>
     <title>Chess first 10 moves trainer</title>
     <meta charset="UTF-8">
+    <meta name="darkreader-lock">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- All game styles -->    
     <link rel="stylesheet" href="scripts/first10.css">
@@ -160,7 +161,7 @@
       <div id="sb-body-result" class="container-sb-body">
         <div class="copy-pgn">
           <input type="text" class="text-input"id="copyPGN" style="width:90%;"value="" readonly>
-          <button class="copy-btn" id="copyPGN-btn" title="Copy to clipboard">
+          <button class="copy-btn" id="copyPGN-btn" title="Copy PGN">
               <img src="images/copy.png" style="width:13px; height:20px;" alt="Copy PGN">
           </button>
         </div>
@@ -174,7 +175,7 @@
             <div><p>Good move</p></div>
         </div>
         <div class="messageBox yellow" id="result-yellow">
-            <div><p>Irregular move</p></div>
+            <div><p class="yellow">Irregular move</p></div>
         </div>
         <div class="messageBox red" id="result-red">
             <div><p>Miss</p></div>

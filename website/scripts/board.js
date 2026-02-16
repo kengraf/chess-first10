@@ -3,6 +3,9 @@ import { _globals } from './first10.js';
 import * as GameData from './gameData.js';
 import * as Sidebar from './sidebar.js'
 
+import { Chess } from 'https://cdn.jsdelivr.net/npm/chess.js@1.4.0/+esm';
+let chess = new Chess();
+
 // JSON Object for _game
 let _game = {
     startingPosition: "",  //FEN format
@@ -19,22 +22,13 @@ export function playMove(notation,isUserMove) {
     _globals.userMove = isUserMove;
     _move.notation = notation;
     _move.WorB = _game.WorB;
-      // Handle the castling special case
-    if ("0oO".includes(_move.notation[0])) {
-        moveCastle(_move.notation);
-    } else {
-        
-        _move.startSquare = {};
-        _move.endSquare = {};
-        if( ! parseMove(_move.notation) ) {
-            console.log( `Bad move notation: ${_move.notation}` );
-            return;
-        }
-        if( identifyPiece(_move.WorB+_move.pieceType)) {
-            executeMove(_move);
-        }
+
+    let tempMove = chess.move(notation);
+    chess.undo();   // Actual after board update
+    if( !tempMove ) {
+        console.log( `Bad move notation: ${notation}` );
+        return;
     }
-    // TBD play sound here or at end of executemove?
 
 /* TBD: enable animation
     _move.delay = 2;
@@ -45,7 +39,14 @@ export function playMove(notation,isUserMove) {
     GameData.updateNode(notation,isUserMove);
     if( isUserMove ) {
         Sidebar.recordResult(notation);
+        if( _globals.showBestArrow ) {
+            console.log(chess.moves())
+//v2            chess.undo();
+//v2            tempMove = chess.move(_globals.bestMove);
+        }
     }
+    console.log(`move: ${JSON.stringify(tempMove)}`);
+    executeMove(tempMove);
     return;
 }
 
@@ -130,26 +131,14 @@ function dropEvent(e) {
         _audioResult = _audioIllegal;
         return null;
     }
-    
-    if( validLandingSquare(e.currentTarget) ) {
-        return userMove( _activePiece );
-    } 
-    resetClickDrag();
-    _audioResult = _audioIllegal;
-    return null;
+    return validateMove(e.currentTarget);
 }
 
 function clickEvent(e) {
     _audioResult = null;
     if( _activePiece ) {
         // Second click is an attempted or aborted move
-        if( validLandingSquare(e.currentTarget) ) {
-            return userMove( _activePiece );
-        } else {
-            resetClickDrag();
-            _audioResult = _audioIllegal;
-            return null;
-        }
+        return validateMove(e.currentTarget);
     } else {
         // set the startSquare
         if( isSquareOccupied(e.currentTarget) ) {
@@ -157,8 +146,7 @@ function clickEvent(e) {
             if( _activePiece ) {
                 // Highlight the parent of the piece image
                highlightSquare( e.currentTarget, "click-overlay" );
-                _moveTos = [];
-               showPossibles( _activePiece );
+               showPossibles( _activePiece.startSquare.alpha );
                return null;
             }
         }
@@ -173,23 +161,19 @@ function isSquareOccupied(node, className = "piece" ) {
     return (node != null);
 }
 
-function validLandingSquare(node) {
-    if( _activePiece == null )
-        // No preceding click or drag
-        return false;
-    if( isSquareOccupied(node) ) {
-        let piece = getPieceFromNode(node);
-        if( piece[0] == _activePiece.WorB )  // same color, no good
-            return false;
-
-        _activePiece.captureMove = true;
-    } else {
-        _activePiece.captureMove = false;
-    }
-
-// determine candidate square
-    _activePiece.endSquare = nodeToSquareType( node );
-    return true;
+function validateMove(node) {
+     let from = _activePiece.startSquare.alpha;
+    let to = node.id;
+    let possibles = chess.moves({square:from, verbose:true});
+    for( const p of possibles)
+        if( p.to == to) {
+//v2            _activePiece.captureMove = p.san.includes('x');
+//v2            _activePiece.endSquare = nodeToSquareType(node);
+            resetClickDrag();
+            return p.san;
+        }
+    _audioResult = _audioIllegal;
+    return null;
 }
 
 function pickedValidPiece(node) {
@@ -214,478 +198,89 @@ function getPieceFromNode(node) {
         return null;
 }
 
-// ---------- available spaces of a piece --------------
-let _moveTos = [];  // alpha of piece i.e. "a8"
-    const availFunctions = [
-        (p) => availPawnSquares(p),
-        (p) => availRookSquares(p),
-        (p) => availKnightSquares(p),
-        (p) => availBishopSquares(p),
-        (p) => availQueenSquares(p),
-        (p) => availKingSquares(p)
-];
-
-function probeOppOnSquare( x, y, ownColor ) {
-    // Bounds check
-    if( isNaN(x) || isNaN(y) )
-        return false;
-    if(  x < 0 || x > 7 ) return false;
-    if(  y < 0 || y > 7 ) return false;
-
-    let alpha = index2alpha(x,y);
-    const square = document.getElementById(alpha);
-    const piece = getPieceFromNode(square);
-
-    if( !piece ) return false;
-    if( ownColor == piece[0] ) 
-        // Running into own color
-        return false;
-
-    highlightSquare( square, "probe-overlay" );
-    _moveTos.push(alpha);
-    return true;
-}
-
-function probeSquare( x, y, ownColor ) {
-    // Bounds check
-    if( isNaN(x) || isNaN(y) )
-        return false;
-    if( x < 0 || x > 7 ) return false;
-    if( y < 0 || y > 7 ) return false;
-
-    let alpha = index2alpha(x,y);
-    const square = document.getElementById(alpha);
-    const piece = getPieceFromNode(square);
-
-    if( piece && ownColor.includes(piece[0]) ) 
-        // Running into own color
-        return false;
-
-    highlightSquare( square, "probe-overlay" );
-    _moveTos.push( alpha );
-    return (piece == null);
-}
-
-function probeFile(piece, n, capture) {
-    let x = piece.startSquare.file;
-    let y = piece.startSquare.rank;
-    for( let i=1; i<=n; i++) {
-        if( !probeSquare( x, y+i, capture )) break; 
-    }
-    for( let i=1; i<=n; i++) {
-        if( !probeSquare( x, y-i, capture )) break; 
-    }
-}
-
-function probeRank(piece, n, capture) {
-    let x = piece.startSquare.file;
-    let y = piece.startSquare.rank;
-    for( let i=1; i<=n; i++) {
-        if( !probeSquare( x+i, y, capture )) break; 
-    }
-    for( let i=1; i<=n; i++) {
-        if( !probeSquare( x-i, y, capture )) break; 
-    }
-}
-
-function probeDiagonals(piece, n, capture) {
-    let x = piece.startSquare.file;
-    let y = piece.startSquare.rank;
-    for( let i=1; i<=n; i++) {
-        if( !probeSquare( x+i, y+i, capture )) break; 
-    }
-    for( let i=1; i<=n; i++) {
-        if( !probeSquare( x+i, y-i, capture )) break; 
-    }
-    for( let i=1; i<=n; i++) {
-        if( !probeSquare( x-i, y+i, capture )) break; 
-    }
-    for( let i=1; i<=n; i++) {
-        if( !probeSquare( x-i, y-i, capture )) break; 
-    }
-}
-
-function probeN(piece, n, capture) {
-    let x = piece.startSquare.file;
-    let y = piece.startSquare.rank;
-    for( let i=1; i<=n; i++) {
-        y++;
-        probeSquare( x, y, capture ); 
-    }
-}
-
-function probeS(piece, n, capture) {
-    let x = piece.startSquare.file;
-    let y = piece.startSquare.rank;
-    for( let i=1; i<=n; i++) {
-        y--;
-        probeSquare( x, y, capture ); 
-    }
-}
-
-function availPawnSquares(piece) {
-    const probeFunc = [ 
-        (p,n,c) => probeN(p,n,c),
-        (p,n,c) => probeS(p,n,c),
-    ];
-
-    let distance = 1;
-    let goNorth = true;
-    if( piece.WorB == "w" ) {
-        goNorth = !_flipped;
-    }
-    if( piece.WorB == "b" ) {
-        goNorth = _flipped;
-    }
-    if( goNorth ) {
-        if( piece.startSquare.rank == 1 ) distance++;
-        probeFunc[0](piece, distance, "wb");
-    } else {
-        if( piece.startSquare.rank == 6 ) distance++;
-        probeFunc[1](piece, distance, "wb");
-    }
-
-    // Capture moves
-    distance = (goNorth) ? 1:-1;
-    let x = piece.startSquare.file;
-    let y = piece.startSquare.rank + distance;
-    probeOppOnSquare( x-1, y, piece.WorB );
-    probeOppOnSquare( x+1, y, piece.WorB );
-    if( _game.enPassant != "-" ) {
-        if( _game.enPassant == index2alpha( x-1, y))
-            _moveTos.push( _game.enPassant );
-        if( _game.enPassant == index2alpha( x+1, y))
-            _moveTos.push( _game.enPassant );
-    }
-}
-
-function availRookSquares(piece) {
-    probeRank(piece, 7, piece.WorB );
-    probeFile(piece, 7, piece.WorB );
-}
-
-function availKnightSquares(piece) {
-    let x = piece.startSquare.file;
-    let y = piece.startSquare.rank;
-    probeSquare( x-1, y+2, piece.WorB  );
-    probeSquare( x+1, y+2, piece.WorB  );
-    probeSquare( x-1, y-2, piece.WorB  );
-    probeSquare( x+1, y-2, piece.WorB  );
-    probeSquare( x-2, y+1, piece.WorB  );
-    probeSquare( x-2, y-1, piece.WorB  );
-    probeSquare( x+2, y+1, piece.WorB  );
-    probeSquare( x+2, y-1, piece.WorB  );
-}
-
-function availBishopSquares(piece) {
-    probeDiagonals(piece, 7, piece.WorB);
-}
-
-function availQueenSquares(piece) {
-    availRookSquares(piece);
-    availBishopSquares(piece);
-}
-
-function availKingSquares(piece) {
-    probeRank(piece, 1, piece.WorB);
-    probeFile(piece, 1, piece.WorB);
-    probeDiagonals(piece, 1, piece.WorB);
-    
-    // Castle spaces
-    if( piece.WorB == "b" ) {
-        if( _game.castling.includes("k")) probeSquare(6,7,piece.WorB);
-        if( _game.castling.includes("q")) probeSquare(2,7,piece.WorB);
-    } else {
-        if( _game.castling.includes("K")) probeSquare(6,0,piece.WorB);
-        if( _game.castling.includes("Q")) probeSquare(2,0,piece.WorB);
-    }
-}
-
-function showPossibles(piece) {
-    const funcIndex = "prnbqk".indexOf(piece.pieceType);
-    if( availFunctions[funcIndex](piece) ) 
-        return;  // function set global _moveTos array
-
-}
-
-function isChecked() {
-    let piece = _activePiece;
-    let checkingPieces = [];
-
-    // Determine Opposing King square
-    let king = (_game.WorB == "b") ? "wk" : "bk";
-    let kingNode = document.querySelectorAll(`[data-group^="${king}"]`);
-    let kingAlpha = kingNode[0].parentNode.id;
-
-    // Temporary move the activePiece while eval of check
-    pieceDelete(piece.startSquare.alpha);
-    const img = pieceImageAdd( piece.WorB+piece.pieceType, piece.endSquare.alpha);
-
-    let candidates = document.querySelectorAll(`[data-group^="${piece.WorB}"]`);
-    for (const node of candidates) {
-        let sq = pickedValidPiece( node );
-        _moveTos = [];
-        showPossibles(sq);
-        if( _moveTos.includes(kingAlpha)) checkingPieces.push(node);
-    }
-    
-    // Return activePiece, UI move made later
-    img.remove();
-    pieceAdd( piece.WorB+piece.pieceType, piece.startSquare.alpha);
-
-    return checkingPieces;
-}
-
-function isMated() {
-    let piece = _activePiece;
-    const checkingPieces = isChecked();
-    if( checkingPieces.length == 0 ) return false;
-return false; // DEBUG and FIX
-
-    // fix eval all squares around king
-    let king = (_game.WorB == "b") ? "wk" : "bk";
-    let kingNode = document.querySelectorAll(`[data-group^="${king}"]`);
-    let sq = nodeToSquareType( kingNode );
-    _moveTos = [];
-    showPossibles(sq);
-    let escapeSquares = _moveTos;
-    // iterate if escape square is still check
-    let candidates = document.querySelectorAll(`[data-group^="${piece.WorB}"]`);
-    for( const escape of escapeSquares) {
-        for (const node of candidates) {
-            _moveTos = [];
-            sq = nodeToSquareType( node );
-            showPossibles(sq);
-            if( _moveTos.includes(escape) == false )
-                // King has an escape square
-                return false;
-        }
-    }
-    
-    // If the King can't escape;; then check for blocking or capturing
-    if( checkingPieces.length > 1 ) return true;
-
-    //fix
-    return false; 
-}
 
 // ------------ piece location and placement -----------
-function disambiguate(move) {
-    // Extra notation needed if two pieces of
-    // same type can make move
-    const colorType = move.WorB + move.pieceType;
-    const candidates = document.querySelectorAll(`[data-group="${colorType}"]`);
-
-    for (const node of candidates) {
-        // Cycle thru all the pieces of that type.
-        let sq = pickedValidPiece( node );
-        _moveTos = [];
-        showPossibles( sq );
-        unhighlightSquare( document, "probe-overlay" );
-        
-        for( const m of _moveTos ) {
-            if( m == move.endSquare.alpha) {
-                if( sq.startSquare.alpha != move.startSquare.alpha ) {
-                if( sq.startSquare.alpha[0] == move.startSquare.alpha[0] )
-                    return move.startSquare.alpha[1];
-                else 
-                    return move.startSquare.alpha[0];
-                }
-            }
-        }
+function showPossibles( sq ) {
+    const squares = chess.moves({square:sq,verbose:true});
+    for( const s of squares ) {
+        let cell = document.getElementById(s.to);
+        highlightSquare( cell, "probe-overlay" );
     }
-    return "";
+}
+
+/* -------------- Move Arrow ----------------  */
+function getSquareCenter(sq) {
+    const element = document.getElementById(sq);
+    const rect = element.getBoundingClientRect();
+
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    return [centerX,centerY];
+}
+
+export function createArrow( arrowSan ) {
+  const tempMove = chess.move(arrowSan);
+  chess.undo();
+  const headSq = tempMove.to;
+  const tailSq = tempMove.from;
+  const container = document.getElementById("board");
+
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'arrow');
+  svg.style.left = '0';
+  svg.style.top = '0';
+  svg.style.width = '100%';
+  svg.style.height = '100%';
+  svg.style.pointerEvents = 'none';
+
+  const [x1,y1] = getSquareCenter(tailSq);
+  const [x2,y2] = getSquareCenter(headSq);
+  
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const angle = Math.atan2(dy, dx);
+  const length = Math.sqrt(dx * dx + dy * dy);
+
+  // Create line
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  line.setAttribute('class', 'arrow-line');
+  line.setAttribute('x1', x1);
+  line.setAttribute('y1', y1);
+  line.setAttribute('x2', x2);
+  line.setAttribute('y2', y2);
+
+  // Create arrowhead
+  const headLength = 25;
+  const headWidth = 20;
+  
+// Shorten the line so arrowhead base aligns with endpoint
+  const adjustedX2 = x2 - headLength * Math.cos(angle);
+  const adjustedY2 = y2 - headLength * Math.sin(angle);
+  
+  line.setAttribute('x2', adjustedX2);
+  line.setAttribute('y2', adjustedY2);
+
+const arrowHead = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  arrowHead.setAttribute('class', 'arrow-head');
+  
+  // Calculate arrowhead points
+  const p1x = x2;
+  const p1y = y2;
+  const p2x = x2 - headLength * Math.cos(angle) - headWidth * Math.sin(angle);
+  const p2y = y2 - headLength * Math.sin(angle) + headWidth * Math.cos(angle);
+  const p3x = x2 - headLength * Math.cos(angle) + headWidth * Math.sin(angle);
+  const p3y = y2 - headLength * Math.sin(angle) - headWidth * Math.cos(angle);
+  
+  arrowHead.setAttribute('points', `${p1x},${p1y} ${p2x},${p2y} ${p3x},${p3y}`);
+
+  svg.appendChild(line);
+  svg.appendChild(arrowHead);
+  container.appendChild(svg);
+  
+  return svg;
 }
 
 // ------------------ Move Functions --------------------
-
-function identifyPiece(colorType) {
-    // Moving based on game notation
-     const candidates = document.querySelectorAll(`[data-group="${colorType}"]`);
-    if( !candidates ) {
-        console.log(`No (${colorType}) on board; Bad move: ${_move.notation}`);
-        return false;
-    }
-
-    let legalPieces = [];
-    for (const node of candidates) {
-        // Cycle thru all the pieces of that type.
-        _moveTos = [];
-        let move = pickedValidPiece( node );
-        showPossibles( move );
-        unhighlightSquare( document, "probe-overlay" );
-
-        if( _moveTos.includes(_move.endSquare.alpha) )
-            // This piece can move to target square
-            legalPieces.push(move.startSquare);
-    }
-    
-    if( _move.disambiguate != "" ) {
-        // Use disabigate notation to filter pieces
-        for( let i=0; i<legalPieces.length; ) {
-            if( legalPieces[i].alpha.includes(_move.disambiguate) == false )
-                // Not correct rank or file
-                legalPieces.splice(i,1);
-            else
-                ++i;
-        }
-    }
-            
-    if( legalPieces.length == 0 ) {
-        // No piece can reach square
-        console.log(`No (${colorType}) can make move: ${_move.notation}`);
-        return false;
-    }
-
-    if( legalPieces.length > 1 ) {
-        // Multiple pieces could move
-        console.log(`Multiple (${colorType}) can make move: ${_move.notation}`);
-        return false;
-    }
-
-    // Identified piece
-    _move.startSquare = legalPieces[0];
-    return true;
-}
-
-function castleAttempt( move ) {
-    // Look at the pending move as apossible castle
-    if( move.pieceType != "k" ) return null;
-    if( move.startSquare.alpha[0] != "e" ) return null;
-    if( move.endSquare.alpha[0] == "g" ) {
-        // Kingside attempt
-        if( (move.WorB == "b") && _game.castling.includes("k") )
-            // _game.castling is updated when the move is made
-            return "O-O";
-        if( (move.WorB == "w") && _game.castling.includes("K") )
-            return "O-O";
-    }
-      
-    if( move.endSquare.alpha[0] == "c" ) {
-        // Queenside attempt
-        if( (move.WorB == "b") && _game.castling.includes("q") )
-            // _game.castling is updated when the move is made
-            return "O-O-O";
-        if( (move.WorB == "w") && _game.castling.includes("Q") )
-            return "O-O-O";
-    }
-      
-
-    return null;
-}
-
-function moveCastle(notation) {
-    // Handle special castling notation
-    if (notation.includes("O-O-O")) {
-        // Queen side castle
-        if( _move.WorB == "b" ) {
-            if( _game.castling.includes("q") ) {
-                movePiece("bk",  "e8",  "c8");
-                movePiece("br",  "a8",  "d8");
-                 _game.castling.replace("q", ""); 
-            }
-        } else {
-            if( _game.castling.includes("Q") ) {
-                movePiece("wk",  "e1",  "c1");
-                movePiece("wr",  "a1",  "d1");
-                 _game.castling.replace("Q", ""); 
-            }
-        }
-        return;
-    }
-    if (notation.includes("O-O")) {
-        // King side castle
-        if( _move.WorB == "b" ) {
-            if( _game.castling.includes("k") ) {
-                movePiece("bk",  "e8",  "g8");
-                movePiece("br",  "h8",  "f8");
-                 _game.castling.replace("k", ""); 
-            }
-        } else {
-            if( _game.castling.includes("K") ) {
-                movePiece("wk",  "e1",  "g1");
-                movePiece("wr",  "h1",  "f1");
-                 _game.castling.replace("K", ""); 
-            }
-        }
-    }
-}
-
-export function findBestMove() {
-    parseMove(_globals.bestMove);
-    identifyPiece(_move.WorB+_move.pieceType);
-    return [_move.startSquare.alpha, _move.endSquare.alpha];
-}
-
-export function parseMove(notation) {
-
-    _move.disambiguate = "";
-    _move.promotionPiece = "";
-    _move.checkResult = false;
-
-    // Peel off the special ending states
-    let lastC = notation.charAt(notation.length - 1);
-    if( lastC == "+" ) {
-        _move.checkResult = true;
-        notation = notation.slice(0, -1);
-        lastC = notation.charAt(notation.length - 1);
-    }
-    if( lastC == "#" ) {
-        _move.mateResult = true;
-        notation = notation.slice(0, -1);
-        lastC = notation.charAt(notation.length - 1);
-    }
-    if( "RNBQ".includes(lastC) ) {
-        // Promotion
-        _move.promotionPiece = lastC;
-        notation = notation.slice(0, -1);
-    }
-
-    // endSquare
-    const regex = /[a-h][1-8]$/;
-    let result = notation.match(regex);
-    if ( result == null )
-         return false;
-    _move.endSquare.alpha = result[0];
-    // Compute to integers for easier comparions
-    _move.endSquare.file = _fileToX[result[0][0]];
-    _move.endSquare.rank = _rankToY[result[0][1]];
-    notation = notation.slice(0, -2);
-    
-    if( notation.length == 0 ) {
-        // Unambiguous pawn move
-        _move.pieceType = 'p';
-        return true;
-    }
-    
-    // Determine if move is a capture
-    lastC = notation.charAt(notation.length - 1);
-    _move.captureMove = (lastC == "x") ? true : false;
-    if ( _move.captureMove ) {
-        notation = notation.slice(0, -1);
-    }
-
-    // Determine piece type
-    if ('RNBQK'.includes(notation[0])) {
-        _move.pieceType = notation[0].toLowerCase();
-        notation = notation.substring(1);
-    } else {
-        _move.pieceType = 'p';
-    }
-
-    if( notation.length == 0 )
-        return true;
-        
-    // Determine if move is ambiguous
-    if ( '12345678abcdefgh'.includes(notation[0]) ) {
-       _move.disambiguate = notation[0];
-       return true;
-    } else {
-        return false;
-    }
-    return (notation.length == 0);
-}
-
 function animateElement(element, keyframes, options) {
     return new Promise((resolve) => {
         const animation = element.animate(keyframes, options);
@@ -707,6 +302,8 @@ export function resetPieces( fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR 
     _globals.PGN = "";
     _globals.steps = [];
     _move.checkResult = false;
+
+    chess.reset();
 
     const fenRanks = parts[0].split("/");
     if (fenRanks.length != 8) {
@@ -754,14 +351,14 @@ function setRanksFiles() {
 
 function executeMove(move) {  // Update the UI
     let floatAnimation = true;
-    let imgSquare = document.getElementById(move.startSquare.alpha);
+    let imgSquare = document.getElementById(move.from);
     const floatImage = imgSquare.querySelectorAll("[data-group]")[0];
     const boardDiv = document.getElementById("board");
     
-    const x = move.startSquare.file * _squareSize;
-    const y = (7 - move.startSquare.rank) * _squareSize;
-    const xEnd = ((move.endSquare.file  * _squareSize));
-    const yEnd = (((7 - move.endSquare.rank) * _squareSize));
+    const x = move.from[1] * _squareSize;
+    const y = (7 - "abcdefgh"[move.from[0]]) * _squareSize;
+    const xEnd = (move.to[1] * _squareSize);
+    const yEnd = (((7 - "abcdefgh"[move.to[0]]) * _squareSize));
 
      // Take the image out of the square and float it over the board
     boardDiv.appendChild(floatImage);
@@ -785,31 +382,21 @@ function executeMove(move) {  // Update the UI
 */
     // Just the moved piece on square
     floatImage.remove();
-    pieceDelete(move.endSquare.alpha);
-    pieceAdd( move.WorB + move.pieceType, move.endSquare.alpha);
+    pieceDelete(move.to);
+    pieceDelete(move.from);
+    pieceAdd( move.color + move.piece, move.to);
 
-    // Put promoted piece on target square
-    if( move.promotionPiece ) {
-        pieceDelete(move.endSquare.alpha);
-        pieceAdd( move.WorB + move.promotionPiece, move.endSquare.alpha);
+    // Put promoted piece on target square //v2 fix which peice
+    if( move.isPromotion() ) {
+        pieceAdd( move.WorB + 'q', move.to);
     }
         
-    if( _game.enPassant == move.endSquare.alpha ) {
-        //Nuke the passed pawn  
-        move.endSquare.alpha = index2alpha(move.endSquare.file, move.endSquare.rank+1);
-        pieceDelete(move.endSquare.alpha);
-        move.endSquare.alpha = index2alpha(move.endSquare.file, move.endSquare.rank-1);
-        pieceDelete(move.endSquare.alpha);
+    if( move.isEnPassant() ) {
+        //Nuke the passed pawn  //v2 TBD FIX
+        pieceDelete(move.to);
     }
     
-    // Set enPassat if 2 square pawn move
-    _game.enPassant = "-";
-    if( move.pieceType == "p" ) {
-        if( (move.endSquare.rank == 3) && (move.startSquare.rank == 1) )
-            _game.enPassant = index2alpha(move.endSquare.file,2);
-        if( (move.endSquare.rank == 4) && (move.startSquare.rank == 6) )
-            _game.enPassant = index2alpha(move.endSquare.file,5);
-    }
+    chess.move(move);
 }
 
 function movePiece( piece, start, end ) {
@@ -845,8 +432,7 @@ function pieceAdd( piece, square) {
         _activePiece = pickedValidPiece( e.currentTarget );
         if( _activePiece ) {
             highlightSquare( e.currentTarget, "drag-overlay" );
-            _moveTos = [];
-            showPossibles( _activePiece );
+            showPossibles( _activePiece.startSquare.alpha );
         } else {
             e.preventDefault();
         }
@@ -868,14 +454,6 @@ function pieceAdd( piece, square) {
 }
 
 // ------------- game control functions ----------------
-function clearBoard() {
-    for( let f=0; f<8; f++ ) {
-        for( let r=0; r<8; r++ ) {
-            pieceDelete(index2alpha(f,r));
-        }
-    }
-}    
-
 function resizeBoard() {
     const container = document.querySelector('.container');
     const containerRect = container.getBoundingClientRect();
@@ -914,6 +492,7 @@ export function initializeBoard() {
     // Populate the global variables
     resizeBoard();
     clearArrows();
+    chess = new Chess(); // standard starting position
     
     setRanksFiles();
     let gridFiles = "abcdefgh";
@@ -1014,91 +593,22 @@ function highlightSquare( square, className ) {
 }
 
 // ----------- game control functions ---------------- //
-function resetClickDrag(check = false) {
+function resetClickDrag() {
     _activePiece = null;
     unhighlightSquare( document, "probe-overlay" );
     unhighlightSquare( document, "click-overlay" );
     unhighlightSquare( document, "drag-overlay" );
-    if( check )
-        unhighlightSquare( document, "check-overlay" );
+    unhighlightSquare( document, "check-overlay" );
 }
 
 function userMove( move = _activePiece ) {
     _audioResult = null;
-    if( _moveTos.includes(move.endSquare.alpha) == false ) {
-        // invalid move
-        _audioResult = _audioIllegal;
-        resetClickDrag();
-        return null;
-    }
-
-    let note = move.pieceType.toUpperCase();
-    if( note == "P" ) {
-        note = "";
-        if( move.captureMove ) {
-            note = move.startSquare.alpha[0];
-        }
-    } else {
-        note += disambiguate(move);
-    }
-    if( move.captureMove ) {
-        note += "x";
-    }
-    note += move.endSquare.alpha;
-    const castled = castleAttempt( move );
-    if( castled ) note = castled;
-    
-    let checked = "";
-    if( isChecked().length > 0 ) {
-        checked = "+";
-        if( isMated() )
-            checked = "#";
-    }
-    note += checked;
     resetClickDrag();
-    return note;
-}
-
-function getFEN() {
-    let fen = "";
-    let spaces = 0;
-
-    for (let rank = 7; rank >= 0; rank--) {
-        for (let file = 0; file < 8; file++) {
-            const parent = document.getElementById(index2alpha(file,rank));
-            const child = parent.children[0];
-
-            if( child != null ) {
-                if( spaces != 0 ) {
-                    fen += `${spaces}`;
-                    spaces = 0;
-                }
-                const dataGroup = child.getAttribute('data-group');
-                let pieceColor = dataGroup[0];
-                let pieceType = dataGroup[1];
-                if( pieceColor == "w" ) pieceType = pieceType.toUpperCase();
-                fen += pieceType;
-            } else {
-                spaces += 1;
-            }
-        }
-        if( spaces != 0 ) {
-            fen += `${spaces}`;
-            spaces = 0;
-        }
-        if( rank > 0 ) fen += "/";
+    const m = chess.moves( {square: move.startSquare.alpha,verbose:true} );
+    if( m.length == 1 ) {
+        return m[0];
     }
-    return fen;
-}
-
-
-function positionAndSizeLabel(parentDiv, type, label) {
-  const labelDiv = document.createElement("div");
-  const labelSize = _squareSize / 8; 
-
-  labelDiv.style.width = labelSize + 'px';
-  labelDiv.style.height = labelSize + 'px';
-  labelDiv.style.fontSize = (labelSize / 4) + 'px';
-  labelDiv.innerHTML = `${label}`;
-  parentDiv.appendChild(labelDiv);  
+    // invalid move
+    _audioResult = _audioIllegal;
+    return null;
 }
