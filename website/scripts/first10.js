@@ -46,7 +46,7 @@ function init() {
 	Board.initializeBoard();
 
 	// Generate data structures
-	GameData.processNodesURL('/data/first10.nodes');
+	GameData.processNodesURL('/data/first10.nodes.gz');
 
 	// Run through the initial user actions
 	openingActions();

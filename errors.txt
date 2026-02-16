@@ -1,0 +1,11 @@
+1. e4 c5 2. Nf3 d6 3. Bb5+ Nd7 4. Ba4 Nf6 5. O-O e6 6. Re1 
+no castling
+
+1. e4 e6 2. d4 d5 3. Nd2 c5 4. exd5 exd5 5. Ngf3 Nc6 6. Bb5 
+Qe7+ as best is just wrong
+
+1. d4 Nf6 2. c4 e6 3. Nf3 d5 4. g3 Bb4+ 5. Bd2 
+Ne7 best gtom off board.  after dxc4
+
+1. e4 c5 2. Nf3 Nc6 3. Bb5 
+move e5, arrow to e6   besr g6

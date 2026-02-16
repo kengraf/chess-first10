@@ -138,10 +138,10 @@ function setResultsTable(notation) {
     show("container-sb-body","sb-body-result","flex");
     
     // If user move is best trigger fireworks
-     _globals.yourMove = notation;
-    const bestSan = bestMove();
+    _globals.yourMove = notation;
+    _globals.bestMove = _globals.peekSteps[0].Move
 
-     if( bestSan == notation) {
+     if( _globals.bestMove == notation) {
         triggerFireworks();
     } else if( _globals.showBestArrow ) {
         const moves = _globals.PGN
@@ -152,9 +152,7 @@ function setResultsTable(notation) {
                 return item && !/^\d+$/.test(item);
             });
 
-        // Rebuild board to undo user move
-        playMoves(moves);
-        Board.createArrow( bestSan );
+        Board.createArrow();
     }
     return gradeId;
 }
@@ -197,8 +195,8 @@ function newGame() {
     let moves = GameData.getOpening();
 
 //TBD TESTING: moves = ['e4', ... ];
-// bad arrow when playing Ne3    
-//    moves=['e4','c6','d4','d5','Nc3','dxe4','Nxe4','Nd7','Bc4','Ngf6'];
+// castle,promote,enpassant test
+// moves=['e3','a5','Nf3','b5','Be2','c5','O-O','a4','b4','axb3','h3','bxa2','h4','axb1=r'];
     playMoves(moves);
 }
 
@@ -361,22 +359,6 @@ async function loadChessOpenings() {
     });
 }
 
-function handleCodeSelection(code) {
-    
-    if ( count == 0) {
-        alert("No ECO(${code}) based games in dataset");
-        _globals.ecoMoves = [];
-    }
-}
-
-function explainWithGoogle() {
-    const query = "why is " + _globals.bestMove + " the best move after " + _globals.PGN;
-
-    const url = 'https://www.google.com/search?q=' + encodeURIComponent(query);
-
-    // Open the new window/tab
-    window.open(url, '_blank');
-}
 
 function bestMove() {
     _globals.bestMove = _globals.peekSteps[0].Move

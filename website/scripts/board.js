@@ -23,9 +23,8 @@ export function playMove(notation,isUserMove) {
     _move.notation = notation;
     _move.WorB = _game.WorB;
 
-    let tempMove = chess.move(notation);
-    chess.undo();   // Actual after board update
-    if( !tempMove ) {
+    _currentMove = chess.move(notation);
+    if( !_currentMove ) {
         console.log( `Bad move notation: ${notation}` );
         return;
     }
@@ -39,14 +38,9 @@ export function playMove(notation,isUserMove) {
     GameData.updateNode(notation,isUserMove);
     if( isUserMove ) {
         Sidebar.recordResult(notation);
-        if( _globals.showBestArrow ) {
-            console.log(chess.moves())
-//v2            chess.undo();
-//v2            tempMove = chess.move(_globals.bestMove);
-        }
     }
-    console.log(`move: ${JSON.stringify(tempMove)}`);
-    executeMove(tempMove);
+    console.log(`move: ${JSON.stringify(_currentMove)}`);
+    drawCurrentMove();
     return;
 }
 
@@ -60,6 +54,28 @@ let _flipped = false;
 let _positiveMove = false;
 let _squareSize = 60;
 
+//v2 this will replace _move
+let _currentMove = {};
+/*
+color: 'w' or 'b'.
+piece: 'p', 'n', 'b', 'r', 'q', or 'k'.
+from: 'e2'.
+to: 'e4'.
+san: Standard Algebraic Notation ('Bxh7+', 'O-O').
+flags: A string containing flags.
+        'n': a normal move
+        'b': a two-square pawn push
+        'e': an en passant capture
+        'c': a capture
+        'p': a promotion
+        'k': a kingside castle
+        'q': a queenside castle
+lan:  (e.g., 'e2e4').
+before: FEN before the move was made.
+after: FEN after the move was made.
+captured: Piece type captured, can be absent.
+promotion: Promoted iece type, can be absent.
+*/
 
 // Current half move
 let _move = {
@@ -146,7 +162,7 @@ function clickEvent(e) {
             if( _activePiece ) {
                 // Highlight the parent of the piece image
                highlightSquare( e.currentTarget, "click-overlay" );
-               showPossibles( _activePiece.startSquare.alpha );
+               showPossibles( _activePiece );
                return null;
             }
         }
@@ -162,13 +178,11 @@ function isSquareOccupied(node, className = "piece" ) {
 }
 
 function validateMove(node) {
-     let from = _activePiece.startSquare.alpha;
+     let from = _activePiece;
     let to = node.id;
     let possibles = chess.moves({square:from, verbose:true});
     for( const p of possibles)
         if( p.to == to) {
-//v2            _activePiece.captureMove = p.san.includes('x');
-//v2            _activePiece.endSquare = nodeToSquareType(node);
             resetClickDrag();
             return p.san;
         }
@@ -177,16 +191,11 @@ function validateMove(node) {
 }
 
 function pickedValidPiece(node) {
-    let sq = {};
     if( !isSquareOccupied(node) ) {
         // Clicked an unoccupied square
         return null;
     }   
-    let piece = getPieceFromNode(node);
-    sq.WorB = piece[0];
-    sq.pieceType = piece[1];
-    sq.startSquare = nodeToSquareType( node );
-    return sq;
+    return node.id;
 }
 
 function getPieceFromNode(node) {
@@ -218,12 +227,14 @@ function getSquareCenter(sq) {
     return [centerX,centerY];
 }
 
-export function createArrow( arrowSan ) {
-  const tempMove = chess.move(arrowSan);
-  chess.undo();
-  const headSq = tempMove.to;
-  const tailSq = tempMove.from;
-  const container = document.getElementById("board");
+export function createArrow() {
+    const arrowSan = _globals.bestMove;
+    chess.undo();  // Undo the user's move
+    const bestMove = chess.move(arrowSan);
+
+    const headSq = bestMove.to;
+    const tailSq = bestMove.from;
+    const container = document.getElementById("main-container");
 
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('class', 'arrow');
@@ -349,7 +360,8 @@ function setRanksFiles() {
     }
 }
 
-function executeMove(move) {  // Update the UI
+function drawCurrentMove() {  // Update the UI
+    const move = _currentMove;
     let floatAnimation = true;
     let imgSquare = document.getElementById(move.from);
     const floatImage = imgSquare.querySelectorAll("[data-group]")[0];
@@ -380,23 +392,37 @@ function executeMove(move) {  // Update the UI
     while( floatAnimation )
         await sleep( 50 );
 */
-    // Just the moved piece on square
+    // TBD: Fix moving visual
     floatImage.remove();
-    pieceDelete(move.to);
-    pieceDelete(move.from);
+    pieceDelete(move.to); // Remove any previous piece, if any
+    pieceDelete(move.from); // Remove moving piece
     pieceAdd( move.color + move.piece, move.to);
 
-    // Put promoted piece on target square //v2 fix which peice
+    // King is correct, fix rook
+    if( move.isKingsideCastle() ) {
+        let rookFrom = (move.color == "w") ? "h1" : "h8";
+        let rookTo = (move.color == "w") ? "f1" : "f8";
+        pieceDelete(rookFrom);
+        pieceAdd( move.color + "r", rookTo);
+    }
+    if( move.isQueensideCastle() ) {
+        let rookFrom = (move.color == "w") ? "a1" : "a8";
+        let rookTo = (move.color == "w") ? "d1" : "d8";
+        pieceDelete(rookFrom);
+        pieceAdd( move.color + "r", rookTo);
+    }
+
+    // Put promoted piece on target square
     if( move.isPromotion() ) {
-        pieceAdd( move.WorB + 'q', move.to);
+        pieceDelete(move.to);
+        pieceAdd( move.color + move.promotion, move.to);
     }
         
     if( move.isEnPassant() ) {
-        //Nuke the passed pawn  //v2 TBD FIX
-        pieceDelete(move.to);
+        // Nuke the passed pawn
+        const passedPawn = move.to[0] + ((move.color == "w") ? "5" : "4");
+        pieceDelete(passedPawn);
     }
-    
-    chess.move(move);
 }
 
 function movePiece( piece, start, end ) {
@@ -432,7 +458,7 @@ function pieceAdd( piece, square) {
         _activePiece = pickedValidPiece( e.currentTarget );
         if( _activePiece ) {
             highlightSquare( e.currentTarget, "drag-overlay" );
-            showPossibles( _activePiece.startSquare.alpha );
+            showPossibles( _activePiece );
         } else {
             e.preventDefault();
         }
@@ -599,16 +625,4 @@ function resetClickDrag() {
     unhighlightSquare( document, "click-overlay" );
     unhighlightSquare( document, "drag-overlay" );
     unhighlightSquare( document, "check-overlay" );
-}
-
-function userMove( move = _activePiece ) {
-    _audioResult = null;
-    resetClickDrag();
-    const m = chess.moves( {square: move.startSquare.alpha,verbose:true} );
-    if( m.length == 1 ) {
-        return m[0];
-    }
-    // invalid move
-    _audioResult = _audioIllegal;
-    return null;
 }

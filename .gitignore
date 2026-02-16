@@ -6,3 +6,5 @@
 *.pgn
 /deploy/lambda/package/*
 *.code-workspace
+/.vscode
+/tests
