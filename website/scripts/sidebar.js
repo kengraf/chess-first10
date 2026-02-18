@@ -1,30 +1,73 @@
 // Globals
-import { _globals, _user } from './first10.js';
+import { _globals } from './first10.js';
 
 import * as GameData from './gameData.js';
 import * as Board from './board.js';
 import * as First10 from './first10.js';
-        
+
+export let _user={};
+
+_user.controls = {
+        "preferColor": "random",
+        "minimumTurns": 1,
+        "maximumTurns": 10,
+        "ecoCode": "",
+        "showBestArrow": false,
+        "playSounds": false,
+        "replay": "never",
+        "showHighlights": false,
+        "theme": "classic",
+        "animation": false	//TBD fix
+    };
+_user.idInfo = { "picture": "/images/login.png" };
+_user.sessions = [];
+_user.missed = [];
+
 export function init() {
      populateUserProfile();
      
      // Start by showing the newgame options
-    pickColor('random');
+    pickColor(controlGet("preferColor"));
     updateSlider();
     loadEcoOpenings();
     loadChessOpenings();
     setSessionsTable();
+    setCurrentEcoCode(controlGet("ecoCode"));
+//TBD fix		"animation": false
 
-    minSlider.addEventListener('input', updateSlider);
-    maxSlider.addEventListener('input', updateSlider);
+
 
     show("container-sb-body","sb-body-settings","flex");
  }
 
 let gamesPlayed = 0;
-let gradeColors = {"best":"Blue", "good":"Green",
-"ok":"Green", "irregular":"Yellow", "miss":"Red"};
 let sessionResults = {"blue":0, "green":0, "yellow":0, "red":0};
+
+export function controlGet(control) {
+    return _user["controls"][control];
+}
+
+export function controlSet(control, value) {
+    _user["controls"][control] = value;
+    queueUserSave();
+}
+
+let saveIsQueued = false;
+export function queueUserSave() {
+    if( saveIsQueued ) {
+        return;
+    }
+    saveIsQueued = true;
+    setTimeout(async () => {
+      const response = await fetch('/v1/databaseItems', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(_user)
+        });
+    const data = await response.json();
+    saveIsQueued = false;
+    }, 5 * 60 * 1000); // 5 minutes
+}
 
 export function recordResult(notation){
     let grade = setResultsTable(notation);
@@ -143,7 +186,7 @@ function setResultsTable(notation) {
 
      if( _globals.bestMove == notation) {
         triggerFireworks();
-    } else if( _globals.showBestArrow ) {
+    } else if( controlGet("showBestArrow") ) {
         const moves = _globals.PGN
             .trim()
             .replace(/[.]/g, ' ')
@@ -184,7 +227,7 @@ function copyPGN() {
 }
 
 function pickColor(color){
-    _globals.preferColor = color;
+    controlSet("preferColor", color);
     highlightCrown(color);
 }
 
@@ -293,32 +336,47 @@ document.getElementById('select-white').addEventListener('click', () => {
 
 const buttons = document.querySelectorAll('.replay-button');
 buttons.forEach(button => {
-  button.addEventListener('click', () => {
-      const newState = button.dataset.state;
-      buttons.forEach(btn => btn.classList.remove('active'));
-      button.classList.add('active');
-      _globals.Replay = newState;
-  });
+    if( button.dataset.state == controlGet("replay") ) {
+        button.classList.add('active');
+    }
+    button.addEventListener('click', () => {
+        const newState = button.dataset.state;
+        buttons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        controlSet("replay", newState);
+    });
 });
 
-document.getElementById('toggleSounds').addEventListener('click', () => {
-    _globals.playSounds = !_globals.playSounds;
+let ctlr = document.getElementById('toggleSounds');
+ctlr.checked = controlGet("playSounds");
+ctlr.addEventListener('click', () => {
+    controlSet("playSounds", !controlGet("playSounds"));
 });
-document.getElementById('toggleHighlight').addEventListener('click', () => {
-    _globals.showHighlights = !_globals.showHighlights;
+
+ctlr = document.getElementById('toggleHighlight');
+ctlr.checked = controlGet("showHighlights");
+ctlr.addEventListener('click', () => {
+    controlSet("showHighlights", !controlGet("showHighlights"));
 });
-document.getElementById('toggleArrows').addEventListener('click', () => {
-    _globals.showBestArrow = !_globals.showBestArrow;
+
+ctlr = document.getElementById('toggleArrows');
+ctlr.checked = controlGet("showArrows");
+ctlr.addEventListener('click', () => {
+    controlSet("showArrows", !controlGet("showArrows"));
 });
-document.getElementById('themeToggle').addEventListener('change', function() {
+
+
+ctlr = document.getElementById('toggleTheme');
+ctlr.checked = (controlGet("theme") === "modern");
+ctlr.addEventListener('change', function() {
     const l = document.getElementById('themeLeftText');
     const r = document.getElementById('themeRightText');
     if(this.checked) {
-        _globals.boardTheme = "Modern";
+        controlSet("theme", "Modern");
         l.className = "textOff";
         r.className = "right-textOn";
     } else {
-        _globals.boardTheme = "Classic";
+        controlSet("theme", "Classic");
         l.className = "left-textOn";
         r.className = "textOff";
     }
@@ -390,7 +448,9 @@ function triggerFireworks() {
 
 // Two-header slider for picking number of moves played
 const minSlider = document.getElementById('min-slider');
+minSlider.addEventListener('input', updateSlider);
 const maxSlider = document.getElementById('max-slider');
+maxSlider.addEventListener('input', updateSlider);
 const minHeader = document.getElementById('min-header');
 const maxHeader = document.getElementById('max-header');
 const progressBar = document.getElementById('progress-bar');
@@ -409,8 +469,8 @@ function updateSlider() {
 
     minHeader.textContent = val1;
     maxHeader.textContent = val2;
-    _globals.maximumTurns = val2;
-    _globals.minimumTurns = val1;
+    controlSet("minimumTurns", val1);
+    controlSet("maximumTurns", val2);
 
     // Calculate percentage for progress bar positioning
     const minPercent = ((val1 - minVal) / (maxVal - minVal)) * 100;
@@ -446,7 +506,7 @@ function setCurrentEcoCode(code) {
         return;
     }
         
-    _globals.ecoCode = code;
+    controlSet("ecoCode", code);
     _globals.nextNode = 0;
     const eco = _globals.ecoOpenings.find(opening => opening.eco === code);
     

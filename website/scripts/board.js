@@ -6,22 +6,10 @@ import * as Sidebar from './sidebar.js'
 import { Chess } from 'https://cdn.jsdelivr.net/npm/chess.js@1.4.0/+esm';
 let chess = new Chess();
 
-// JSON Object for _game
-let _game = {
-    startingPosition: "",  //FEN format
-    castling: "kqKQ",
-    enPassant: "-",
-    moveCount: 0,
-    steps: [],  // _move objects
-    WorB: "w",
-};
-
 export function playMove(notation,isUserMove) {
     if( notation == null ) return;
     
     _globals.userMove = isUserMove;
-    _move.notation = notation;
-    _move.WorB = _game.WorB;
 
     _currentMove = chess.move(notation);
     if( !_currentMove ) {
@@ -34,7 +22,6 @@ export function playMove(notation,isUserMove) {
     if( _move.delay ) 
         await sleep( _move.delay * 1000 );
 */
-    _game.WorB = _move.WorB = (_move.WorB == 'w') ? "b" : "w";
     GameData.updateNode(notation,isUserMove);
     if( isUserMove ) {
         Sidebar.recordResult(notation);
@@ -77,24 +64,6 @@ captured: Piece type captured, can be absent.
 promotion: Promoted iece type, can be absent.
 */
 
-// Current half move
-let _move = {
-    WorB: "w",
-    notation: "", // i.e. R1xf1+
-    delay: 0,  // if (-1) wait; else number of seconds
-    par: 0, // scored value
-    comment: "",
-    altMove: {}, // move, optional
-    startSquare: {}, // location before moving {alpha:'a5',file:0,rank:4}
-    endSquare: {}, // location after, except enPassant and castling
-    pieceType: "", // one of "prbnqk"
-    disambiguate: "",  // Only used when 2 pieces can move to the end square
-    promotionPiece: "", // one of "RNBQ"
-    captureMove: false, // True only when move is a capture
-    checkResult: false,
-    mateResult: false,
-};
-
 // ------------- helper/utility functions --------------
 
 function index2alpha( file, rank ) {
@@ -124,20 +93,6 @@ function alpha2index( sq ) {
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-
-function nodeToSquareType(node) {
-    let sq = {};
-    if( node.className == "piece" )
-        node = node.parentElement;
-    let alpha = node.id;  // the square div is "id=a8"
-    sq.alpha = alpha;
-    sq.file = _fileToX[alpha[0]];
-    sq.rank = _rankToY[alpha[1]];
-    if( isNaN(sq.rank))
-        return null;
-    return sq;
-}
-
 
 // ------------ browser interactions ----------------
 let _activePiece = null; // type of _move not node
@@ -194,19 +149,18 @@ function pickedValidPiece(node) {
     if( !isSquareOccupied(node) ) {
         // Clicked an unoccupied square
         return null;
-    }   
-    return node.id;
-}
-
-function getPieceFromNode(node) {
-    if( node.className != "piece" )
-        node = node.querySelector(`.piece`);
-    if( node )
-        return node.getAttribute('data-group');
-    else
+    }
+    let piece = node.getAttribute('data-group');
+    if( piece == null ) {
+        // Empty square
         return null;
+    }
+    if( chess.turn() != piece[0]) {
+        // Wrong color piece
+        return null;
+    } 
+    return node.parentElement.id;
 }
-
 
 // ------------ piece location and placement -----------
 function showPossibles( sq ) {
@@ -299,22 +253,15 @@ function animateElement(element, keyframes, options) {
     });
 }
 
-export function resetPieces( fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w kqKQ - 0 0" ) {
+export function resetPieces( fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" ) {
     // FEN notation for initial board setup
     const parts = fen.split(" ");
-    _game.initalBoard = parts[0];
-    _game.WorB = _move.WorB = parts[1];
-    _game.castling = parts[2];
-    _game.enPassant = parts[3];
-    _game.halfMoves = parts[4];
-    _game.fullMoves = parts[5];
-    _game.fen = fen
+
     _globals.nextNode = 0;
     _globals.PGN = "";
     _globals.steps = [];
-    _move.checkResult = false;
 
-    chess.reset();
+    chess.load(fen);
 
     const fenRanks = parts[0].split("/");
     if (fenRanks.length != 8) {
@@ -425,13 +372,6 @@ function drawCurrentMove() {  // Update the UI
     }
 }
 
-function movePiece( piece, start, end ) {
-    // Fix here is where all UI things happen
-    pieceDelete(end);
-    pieceDelete(start);
-    pieceAdd( piece, end);
-}
-
 function pieceDelete(square) {
     const container = document.getElementById(square);
     if( container ) container.replaceChildren();
@@ -440,7 +380,7 @@ function pieceDelete(square) {
 function pieceImageAdd( piece, square) {
     let container = document.getElementById(square);
     const img = document.createElement("img");
-    let theme = _globals.boardTheme;
+    let theme = Sidebar.controlGet("theme");
     img.className = "piece";
     img.setAttribute("data-group", piece);
     img.setAttribute("src", `./images/${theme}/${piece}.png` );
@@ -468,11 +408,11 @@ function pieceAdd( piece, square) {
     unhighlightSquare( document, "check-overlay" );
 
     // Highlight checked King
-    if( _move.checkResult || _move.mateResult ) { 
+    if( chess.isCheckmate() || chess.inCheck() ) { 
         const checkedKing = (piece[0] == "w") ? "bk" : "wk";
         const king = document.querySelectorAll(`[data-group="${checkedKing}"]`)[0];
         highlightSquare( king.parentElement, "check-overlay" );
-        if( _move.mateResult ) {
+        if( chess.isCheckmate() ) {
             // Lay down the king
             king.style.transform = 'rotate(60deg)';  
         }
@@ -539,7 +479,7 @@ export function initializeBoard() {
             child = document.createElement("div");
             child.className = `square file-${file+1} rank${rank+1}`;
             child.id=`${gridFiles[file]}${gridRanks[rank]}`;
-            let sqName = _globals.boardTheme;
+            let sqName = Sidebar.controlGet("theme");
             sqName += ((rank+file)%2 == 0 ) ? "/darkSquare" : "/lightSquare";
             if(file == 0)sqName += `${gridRanks[rank]}`;
             if(rank == 0)sqName += `${gridFiles[file]}`;

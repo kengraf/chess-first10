@@ -7,30 +7,18 @@ import * as Sidebar from './sidebar.js'
 // Globals
 export let _globals = {};
 
-_globals.boardTheme = "classic";
 _globals.pgnURL = "data/first10.pgn";
-_globals.minimumTurns = 1;
-_globals.maximumTurns = 10;
 _globals.PGN = "";
 _globals.FEN = "";
 _globals.nextNode = 0;
 _globals.steps = [];
 _globals.peekSteps = [];
 _globals.playingAs = "white";
-_globals.preferColor = "white";
 _globals.sessionCookie = "";
 _globals.userCookie = "";
-_globals.showBestArrow = false;
-_globals.playSounds = false;
-_globals.replay = "never";
-_globals.showHighlights = false;
 _globals.bestMove = "";
 _globals.ecoMoves = [];
 
-export let _user={
-	"idInfo": { "picture": "/images/login.png" },
-	"sessions": [],
-	"missed": []};
 
 // ---------- Code to run the game -------------
 function init() {
@@ -46,7 +34,7 @@ function init() {
 	Board.initializeBoard();
 
 	// Generate data structures
-	GameData.processNodesURL('/data/first10.nodes.gz');
+	GameData.processNodesURL('/data/first10.nodes');
 
 	// Run through the initial user actions
 	openingActions();

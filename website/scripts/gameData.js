@@ -1,4 +1,5 @@
-import { _globals, _user } from './first10.js';
+import { _globals } from './first10.js';
+import { _user } from './sidebar.js';
 
 import * as Sidebar from './sidebar.js'
 
@@ -6,8 +7,8 @@ let NODES = [{ count: 0, steps: {} }];
 let iNode = 0;
 
 export function getOpening() {
-	let min = _globals.minimumTurns;
-	let max = _globals.maximumTurns;
+	let min = Sidebar.controlGet("minimumTurns");
+	let max = Sidebar.controlGet("maximumTurns");
 	var rand = 0;
 	for (var i = 0; i < 2; i += 1) {
 		rand += Math.random();
@@ -16,15 +17,10 @@ export function getOpening() {
 	steps = (steps+min)*2;
 
 	
-	_globals.playingAs = "white";
-// Add a step for black or randomly
-	if (_globals.preferColor == "black") {
-		_globals.playingAs = "black";
-		}
-	if(_globals.preferColor == "random") {
-		if (Math.random() > 0.5)
-		_globals.playingAs = "black";
-		}
+	_globals.playingAs = Sidebar.controlGet("preferColor");
+	if(_globals.playingAs == "random") {
+		_globals.playingAs = (Math.random() > 0.5) ? "white" : "black";
+	}
 		
 	if( _globals.playingAs == "black" ) {
 		steps++;
@@ -83,9 +79,9 @@ function randomGame(steps) {
 	let ecoMoves = _globals.ecoMoves;
 	
 	let replay = false;
-	if(_globals.Replay == 'random' ) 
+	if(Sidebar.controlGet("replay") == 'random' ) 
 		replay = Math.random() < 0.5;
-	if(_globals.Replay == 'always')
+	if(Sidebar.controlGet("replay") == 'always')
 		replay = true;
 	if(replay && _user.missed.length > 0 ) {
 		const randomIndex = Math.floor(Math.random() * _user.missed.length);
