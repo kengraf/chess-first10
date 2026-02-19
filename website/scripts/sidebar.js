@@ -372,11 +372,11 @@ ctlr.addEventListener('change', function() {
     const l = document.getElementById('themeLeftText');
     const r = document.getElementById('themeRightText');
     if(this.checked) {
-        controlSet("theme", "Modern");
+        controlSet("theme", "modern");
         l.className = "textOff";
         r.className = "right-textOn";
     } else {
-        controlSet("theme", "Classic");
+        controlSet("theme", "classic");
         l.className = "left-textOn";
         r.className = "textOff";
     }
