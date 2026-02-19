@@ -104,10 +104,10 @@ export function isLocalHost(hostname = window.location.hostname) {
 function checkSessionCookies() {
 	const cookies = document.cookie;
 	let c = cookies.split('; ').find(row => row.startsWith('session='));
-	if( c ) _globals.sessionCoookie = c.split('=')[1];
+	if( c ) _globals.sessionCookie = c.split('=')[1];
 	
 	c = cookies.split('; ').find(row => row.startsWith('user='));
-	if( c ) _globals.userCoookie = c.split('=')[1];
+	if( c ) _globals.userCookie = c.split('=')[1];
 }
 
 async function handleLocalCredential() {
