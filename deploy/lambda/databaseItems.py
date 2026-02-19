@@ -74,6 +74,7 @@ def authCookie(event):
 	return response(401, {'error': f'Invalid user cookie: {sub}'})
 
 def handler(event, context):
+	print(event)
 	sub = authCookie(event)
 	if not sub:
 		return {"statusCode": 401, "body": json.dumps({"error": "Unauthorized", "message": "Missing user cookie"})}
