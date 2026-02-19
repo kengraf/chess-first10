@@ -176,7 +176,7 @@
       }
     },
 	
-    "DatabaseItemsIntegration": {
+    "DatabaseItemsPostIntegration": {
       "Type": "AWS::ApiGatewayV2::Integration",
       "Properties": {
         "ApiId": {"Ref": "HttpApi"},
@@ -186,7 +186,17 @@
         "PayloadFormatVersion": "2.0"
       }
     },
-    "DatabaseItemsRoute": {
+    "DatabaseItemsGetIntegration": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {"Ref": "HttpApi"},
+		"IntegrationMethod": "GET",
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {"Fn::GetAtt": ["DatabaseItemsFunction", "Arn"]},
+        "PayloadFormatVersion": "2.0"
+      }
+    },
+    "DatabaseItemsPostRoute": {
       "Type": "AWS::ApiGatewayV2::Route",
       "Properties": {
         "ApiId": {"Ref": "HttpApi"},
@@ -194,7 +204,20 @@
         "Target": {
           "Fn::Join": [
             "",
-            ["integrations/", {"Ref": "DatabaseItemsIntegration"}]
+            ["integrations/", {"Ref": "DatabaseItemsPostIntegration"}]
+          ]
+        }
+      }
+    },
+    "DatabaseItemsGetRoute": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {"Ref": "HttpApi"},
+        "RouteKey": "GET /databaseItems",
+        "Target": {
+          "Fn::Join": [
+            "",
+            ["integrations/", {"Ref": "DatabaseItemsGetIntegration"}]
           ]
         }
       }

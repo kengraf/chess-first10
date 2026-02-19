@@ -1,49 +1,49 @@
 import json
 import boto3
-import os
+from decimal import Decimal
+from urllib3 import response
 
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return int(obj) if obj % 1 == 0 else float(obj)
+        return super().default(obj)
+	
 # Initialize outside the handler for connection re-use
 dynamodb = boto3.resource('dynamodb')
-TABLE_NAME = os.environ.get('TABLE_NAME', 'chess-first10')
-table = dynamodb.Table(TABLE_NAME)
+table = dynamodb.Table('chess-first10')
 
-def handler(event, context):
-	print("Received event:", json.dumps(event, indent=2))
+def handle_get(event, sub):
 	try:
-		# 1. Parse the incoming body
-		body = event.get('body', '{}')
-		sub = body.get('sub')
-		id_info = body.get('idInfo')
-		new_sessions = body.get('sessions', [])
-		new_missed = body.get('missed', [])
+		response = table.get_item(Key={'sub': sub})
+		if 'Item' in response:
+			print(response)
+			return response(200, response['Item'])
+	except Exception:
+		return response(404, {"error": "User data not found"})	
+	
+def handle_post(event, sub):
+	try:
+		data = event["body"]
+		if isinstance(data, str):
+			data = json.loads(data)
+		print("Received body:", json.dumps(data))
 
-		if not sub:
-			return {"statusCode": 400, "body": json.dumps("Missing 'sub' key")}
+		update_expr = "SET " + ", ".join(f"#{k} = :{k}" for k in data)
+		attr_names   = {f"#{k}": k for k in data}
+		attr_values  = {f":{k}": v for k, v in data.items()}
 
-		# 2. Update the item
-		# We use list_append combined with if_not_exists to handle new vs existing items
 		response = table.update_item(
 			Key={'sub': sub},
-			UpdateExpression="""
-				SET #it = :idInfo,
-					sessions = list_append(if_not_exists(sessions, :empty_list), :s),
-					missed = :m
-			""",
-			ExpressionAttributeNames={
-				'#it': 'idInfo'  # Use alias because 'idInfo' might be fine, but safe practice
-			},
-			ExpressionAttributeValues={
-				':idInfo': id_info,
-				':s': new_sessions,
-				':m': new_missed,
-				':empty_list': []
-			},
-			ReturnValues="UPDATED_NEW"
+			UpdateExpression=update_expr,
+			ExpressionAttributeNames=attr_names,
+			ExpressionAttributeValues=attr_values,
+			ReturnValues='UPDATED_NEW'
 		)
 
 		return {
 			"statusCode": 200,
-			"body": json.dumps({"message": "Update successful", "updated": response.get('Attributes')})
+			"body": json.dumps(response, cls=DecimalEncoder)
 		}
 
 	except Exception as e:
@@ -53,16 +53,51 @@ def handler(event, context):
 			"body": json.dumps({"error": "Internal Server Error", "details": str(e)})
 		}
 
+def response(status_code, body):
+    return {
+        'statusCode': status_code,
+        'headers': {'Content-Type': 'application/json'},
+        'body': json.dumps(body, cls=DecimalEncoder)
+    }
+
+def authCookie(event):
+	try:
+		cookies = event.get('cookies', [])
+		sub = next(
+			(c.split('=', 1)[1] for c in cookies if c.startswith('user=')),None)
+		if sub:
+			response = table.get_item(Key={'sub': sub})
+			if 'Item' in response:
+				return sub
+	except Exception:
+		None
+	return response(401, {'error': f'Invalid user cookie: {sub}'})
+
+def handler(event, context):
+	sub = authCookie(event)
+	if not sub:
+		return {"statusCode": 401, "body": json.dumps({"error": "Unauthorized", "message": "Missing user cookie"})}
+
+	method = event.get('httpMethod') or event.get('requestContext', {}).get('http', {}).get('method')
+
+	if method == 'GET':
+		return handle_get(event, sub)
+	elif method == 'POST':
+		return handle_post(event, sub)
+	else:
+		return response(405, {'error': f'Method {method} not allowed'})
+
 if __name__ == "__main__":
 	try:
-		event = { "body": { "sub": "123abc", "idInfo": { "name": "bob", "email": "bob@bob.com"}, "sessions": [ {"date": "11111", "blue": "10", "green": "20",   "yellow": "30", "red": "40" }],  "missed": ["1.e4 e5", "1.d4 d5"] }}
+		event = {}
 		print( handler(event, 0) )
 	except Exception as e:
 		print( str(e) )
 
-"""  CLI example
-curl -X POST https://chess-first10.kengraf.com/v1/databaseItems \
-     -H 'Content-Type: application/json' \
-     -d '{ "body": { "sub": "123abc", "idInfo": { "name": "bob", "email": "bob@bob.com"}, "sessions": [ {"date": "11111", "blue": "10", "green": "20",   "yellow": "30", "red": "40" }],  "missed": ["1.e4 e5", "1.d4 d5"] }}'
+"""  CLI examples
+curl https://chess-first10.kengraf.com/v1/databaseItems -b 'user=test'
 
+curl -X POST https://chess-first10.kengraf.com/v1/databaseItems \
+     -H 'Content-Type: application/json' -b 'user=test' \
+     -d '{ "controls": {"preferColor": "random","minimumTurns": 1,"maximumTurns": 10,"ecoCode": "","showBestArrow": false,"playSounds": true,"replay": "never","showHighlights": true,"theme": "classic","animation": false,"showArrows": true}, "idInfo": {"picture": "/images/login.png"},"sessions": [{"blue": 7,"green": 2,"yellow": 1,"red": 3,"date": 1771468093926}],"missed": ["1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 "] }'
 """
