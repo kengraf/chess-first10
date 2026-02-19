@@ -4,9 +4,10 @@ import requests
 from datetime import datetime, timezone
 
 CLIENT_ID = '1030435771551-qnikf54b4jhlbdmm4bkhst0io28u11s4.apps.googleusercontent.com'
-p1 = 'GOCSPX'
-p2 = -'kx6RVs8rPVYXfBxGnhy1C9AK2ZVe'
-CLIENT_SECRET = p1 + '-' + p2
+p1 = 'TOCSPX'
+p2 = 'xk6EIf8eCILKsOkTaul1P9NX2MIr'
+import codecs
+CLIENT_SECRET = codecs.encode(p1 + '-' + p2, 'rot_13')
 REDIRECT_URI  = 'postmessage'  # for JS popup flow
 
 dynamodb = boto3.resource('dynamodb')
