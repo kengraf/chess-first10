@@ -42,15 +42,12 @@ s3() {
 website() {
     echo "Uploading website content"
     pushd ../website
-    aws s3 sync . s3://$S3BUCKET/ \
-  --exclude "*" \
-  --include "*.html" --content-type "text/html" \
-  --exclude "*" \
-  --include "./data/*" --content-type "application/json" \
-  --exclude "*" \
-  --include "./scripts/*.css" --content-type "text/css" \
-  --exclude "*" \
-  --include "./scripts/*.js" --content-type "application/javascript"
+    cd data
+    aws s3 sync . s3://$S3BUCKET/data --content-type "application/json"
+    cd ../scripts
+    aws s3 sync . s3://$S3BUCKET/scripts --content-type "application/javascript"
+    cd ../
+    aws s3 sync . s3://$S3BUCKET/
     popd
     invalidation
 }
