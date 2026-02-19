@@ -46,11 +46,11 @@ website() {
   --exclude "*" \
   --include "*.html" --content-type "text/html" \
   --exclude "*" \
-  --include "*.nodes" --content-type "application/json" \
+  --include "./data/*" --content-type "application/json" \
   --exclude "*" \
-  --include "*.css" --content-type "text/css" \
+  --include "./scripts/*.css" --content-type "text/css" \
   --exclude "*" \
-  --include "*.js" --content-type "application/javascript"
+  --include "./scripts/*.js" --content-type "application/javascript"
     popd
     invalidation
 }
