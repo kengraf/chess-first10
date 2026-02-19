@@ -146,6 +146,7 @@ function handleCredentialResponse(response) {
 	.then(data => {
 		console.log('Data fetched:', data);
 		_globals.userCookie = data["sub"];
+		Sidebar._user = data;
 	})
 	.catch(error => {
 		console.error('Error verifying token:', error);

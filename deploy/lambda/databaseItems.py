@@ -1,7 +1,6 @@
 import json
 import boto3
 from decimal import Decimal
-from urllib3 import response
 
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -13,14 +12,22 @@ class DecimalEncoder(json.JSONEncoder):
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('chess-first10')
 
+def respond(status_code, body):
+	response = {
+        'statusCode': status_code,
+        'headers': {'Content-Type': 'application/json'},
+        'body': json.dumps(body, cls=DecimalEncoder)
+    }
+	print(response)
+	return response
+
 def handle_get(event, sub):
 	try:
 		response = table.get_item(Key={'sub': sub})
 		if 'Item' in response:
-			print(response)
-			return response(200, response['Item'])
+			return respond(200, response['Item'])
 	except Exception:
-		return response(404, {"error": "User data not found"})	
+		return respond(404, {"error": "User data not found"})	
 	
 def handle_post(event, sub):
 	try:
@@ -53,13 +60,6 @@ def handle_post(event, sub):
 			"body": json.dumps({"error": "Internal Server Error", "details": str(e)})
 		}
 
-def response(status_code, body):
-    return {
-        'statusCode': status_code,
-        'headers': {'Content-Type': 'application/json'},
-        'body': json.dumps(body, cls=DecimalEncoder)
-    }
-
 def authCookie(event):
 	try:
 		cookies = event.get('cookies', [])
@@ -71,7 +71,7 @@ def authCookie(event):
 				return sub
 	except Exception:
 		None
-	return response(401, {'error': f'Invalid user cookie: {sub}'})
+	return respond(401, {'error': f'Invalid user cookie: {sub}'})
 
 def handler(event, context):
 	print(event)
@@ -79,18 +79,20 @@ def handler(event, context):
 	if not sub:
 		return {"statusCode": 401, "body": json.dumps({"error": "Unauthorized", "message": "Missing user cookie"})}
 
-	method = event.get('httpMethod') or event.get('requestContext', {}).get('http', {}).get('method')
+	method = event.get('requestContext', {}).get('http', {}).get('method')
 
 	if method == 'GET':
 		return handle_get(event, sub)
 	elif method == 'POST':
 		return handle_post(event, sub)
 	else:
-		return response(405, {'error': f'Method {method} not allowed'})
+		return respond(405, {'error': f'Method {method} not allowed'})
 
 if __name__ == "__main__":
 	try:
 		event = {}
+		print( handler(event, 0) )
+		event = {"cookies": ['user=test'], "requestContext":{"http":{"method":"GET"}}}
 		print( handler(event, 0) )
 	except Exception as e:
 		print( str(e) )

@@ -41,8 +41,8 @@
         "CachePolicyConfig": {
           "Name": "AllowSetCookieCachePolicy-first10",
           "Comment": "Policy to allow Set-Cookie headers by forwarding all cookies",
-          "DefaultTTL": 86400,
-          "MaxTTL": 31536000,
+          "DefaultTTL": 1,
+          "MaxTTL": 1,
           "MinTTL": 1,
           "ParametersInCacheKeyAndForwardedToOrigin": {
             "CookiesConfig": {
