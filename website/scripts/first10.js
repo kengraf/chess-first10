@@ -67,6 +67,8 @@ export function openingActions() {
 
 	// Generate sidebar and UI elements
 	Sidebar.init('container-sb');
+	Sidebar.show("container-sb-body","sb-body-settings","flex");
+	
 }
 
 
@@ -146,12 +148,22 @@ function handleCredentialResponse(response) {
 	.then(data => {
 		console.log('Data fetched:', data);
 		_globals.userCookie = data["sub"];
-		Sidebar._user = data;
+		Sidebar.setUser(data);
 	})
 	.catch(error => {
 		console.error('Error verifying token:', error);
 	});
 	openingActions();
+}
+
+function logout() {
+	_globals.userCookie = "";
+	_globals.sessionCookie = "";
+	document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+	document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+	Sidebar.setUser(null);
+	document.getElementById("loginDiv").style.display = 'flex';
+	document.getElementById("profileDiv").style.display = 'none';
 }
 
 // Render the Google Sign-In button

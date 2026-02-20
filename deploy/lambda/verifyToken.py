@@ -1,145 +1,89 @@
+import os
 import json
 import boto3
+import uuid
 import requests
-from datetime import datetime, timezone
+from google.oauth2 import id_token
+from google.auth.transport import requests as Grequests
+from decimal import Decimal
 
-CLIENT_ID = '1030435771551-qnikf54b4jhlbdmm4bkhst0io28u11s4.apps.googleusercontent.com'
-p1 = 'TOCSPX'
-p2 = 'xk6EIf8eCILKsOkTaul1P9NX2MIr'
-import codecs
-CLIENT_SECRET = codecs.encode(p1 + '-' + p2, 'rot_13')
-REDIRECT_URI  = 'postmessage'  # for JS popup flow
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return int(obj) if obj % 1 == 0 else float(obj)
+        return super().default(obj)
+	
+CLIENT_ID = "1030435771551-qnikf54b4jhlbdmm4bkhst0io28u11s4.apps.googleusercontent.com"
 
+# Initialize DynamoDB client
 dynamodb = boto3.resource('dynamodb')
-table    = dynamodb.Table('users')
+TABLE_NAME = os.environ.get('TABLE_NAME', 'chess-first10')
+table = dynamodb.Table(TABLE_NAME) 
 
-# ── Main handler ───────────────────────────────────────────────────────────
-def lambda_handler(event, context):
-    method = (event.get('httpMethod') or
-              event.get('requestContext', {}).get('http', {}).get('method'))
-    path   = event.get('path') or event.get('rawPath', '')
+def handler(event, context):
+    print(event)
+    try:
+        # Parse JSON body
+        body = json.loads(event["body"])
+        token = body.get("idToken")
+        
+        if not token:
+            return {
+                "statusCode": 400,
+                "headers": {"Content-Type": "application/json"},
+                "body": json.dumps({"error": "idToken: is required in body"})
+            }
+        
+        # Call Google service to validate JWT
+        idinfo = id_token.verify_oauth2_token(token, Grequests.Request(), CLIENT_ID)
+        sub = idinfo['sub']
+        response = table.get_item(Key={'sub': sub})
+        user_uuid = str(uuid.uuid4())
+        idinfo['user_uuid'] = user_uuid 
+        item = response.get('Item')
+        
+        # Save new user
+        if item is None:
+            item = {}
+            item["sessions"] = []
+            item["missed"] = []
 
-    if path.endswith('/login')   and method == 'POST': return handle_login(event)
-    if path.endswith('/refresh') and method == 'POST': return handle_refresh(event)
-    if path.endswith('/logout')  and method == 'POST': return handle_logout(event)
+        item['idinfo'] = idinfo  # recent auth data supercedes db
+        item.pop('sub', None)    
+        print(item)
+        update_expr = "SET " + ", ".join(f"#{k} = :{k}" for k in item.keys())
+        attr_names   = {f"#{k}": k for k in item.keys()}
+        attr_values  = {f":{k}": v for k, v in item.items()}
 
-    return resp(404, {'error': 'Not found'})
-
-
-# ── Login: exchange code for tokens ───────────────────────────────────────
-def handle_login(event):
-    body = json.loads(event.get('body') or '{}')
-    code = body.get('code')
-    if not code:
-        return resp(400, {'error': 'Missing code'})
-
-    # exchange code with Google
-    r = requests.post('https://oauth2.googleapis.com/token', data={
-        'code':          code,
-        'client_id':     CLIENT_ID,
-        'client_secret': CLIENT_SECRET,
-        'redirect_uri':  REDIRECT_URI,
-        'grant_type':    'authorization_code'
-    })
-    tokens = r.json()
-    if 'error' in tokens:
-        return resp(401, {'error': tokens['error']})
-
-    # get user info
-    user_info = get_user_info(tokens['access_token'])
-    user_id   = user_info['sub']  # Google's unique user ID
-
-    # save refresh token to DynamoDB
-    table.update_item(
-        Key={'id': user_id},
-        UpdateExpression='SET refresh_token = :rt, email = :email, picture = :pic',
-        ExpressionAttributeValues={
-            ':rt':    tokens['refresh_token'],
-            ':email': user_info.get('email'),
-            ':pic':   user_info.get('picture')
-        }
-    )
-
-    response_body = {
-        'access_token': tokens['access_token'],
-        'expires_in':   tokens['expires_in'],
-        'email':        user_info.get('email'),
-        'picture':      user_info.get('picture')
-    }
-
-    # set user_id in httpOnly cookie so refresh endpoint knows who they are
-    return resp(200, response_body, cookie=f'user_id={user_id}; HttpOnly; Secure; SameSite=Strict; Path=/')
-
-
-# ── Refresh: get new access token silently ────────────────────────────────
-def handle_refresh(event):
-    user_id = get_cookie(event, 'user_id')
-    if not user_id:
-        return resp(401, {'error': 'No session'})
-
-    # get refresh token from DynamoDB
-    result = table.get_item(Key={'id': user_id})
-    item   = result.get('Item')
-    if not item or not item.get('refresh_token'):
-        return resp(401, {'error': 'No refresh token, please log in again'})
-
-    r = requests.post('https://oauth2.googleapis.com/token', data={
-        'refresh_token': item['refresh_token'],
-        'client_id':     CLIENT_ID,
-        'client_secret': CLIENT_SECRET,
-        'grant_type':    'refresh_token'
-    })
-    tokens = r.json()
-    if 'error' in tokens:
-        return resp(401, {'error': 'Refresh failed, please log in again'})
-
-    return resp(200, {
-        'access_token': tokens['access_token'],
-        'expires_in':   tokens['expires_in']
-    })
-
-
-# ── Logout ─────────────────────────────────────────────────────────────────
-def handle_logout(event):
-    user_id = get_cookie(event, 'user_id')
-    if user_id:
-        # optionally revoke token with Google
-        item = table.get_item(Key={'id': user_id}).get('Item', {})
-        if item.get('refresh_token'):
-            requests.post('https://oauth2.googleapis.com/revoke',
-                          params={'token': item['refresh_token']})
-        # clear refresh token from DB
-        table.update_item(
-            Key={'id': user_id},
-            UpdateExpression='REMOVE refresh_token'
+        response = table.update_item(
+            Key={'sub': sub},
+            UpdateExpression=update_expr,
+            ExpressionAttributeNames=attr_names,
+            ExpressionAttributeValues=attr_values,
+            ReturnValues='UPDATED_NEW'
         )
 
-    return resp(200, {'ok': True}, cookie='user_id=; HttpOnly; Secure; Max-Age=0; Path=/')
+        # Eturn what is now in table
+        response = {
+            "cookies": [
+                f"session={idinfo['user_uuid']}; Secure=true; SameSite=Lax; Path=/",
+                f"user={sub}; Secure=true; SameSite=Lax; Path=/; Max-Age=31536000"
+            ],
+            "isBase64Encoded": False,
+            "statusCode": 200,
+            "headers": {
+                "Content-Type": "application/json",
+                "Cache-Control": 'no-cache="Set-Cookie"'
+            },
+            "body": json.dumps(item, cls=DecimalEncoder)
+            }
+        print(response)
+        return response
 
-
-# ── Helpers ────────────────────────────────────────────────────────────────
-def get_user_info(access_token):
-    r = requests.get('https://www.googleapis.com/oauth2/v3/userinfo',
-                     headers={'Authorization': f'Bearer {access_token}'})
-    return r.json()
-
-def get_cookie(event, name):
-    # HTTP API v2
-    cookies = event.get('cookies', [])
-    for c in cookies:
-        if c.startswith(f'{name}='):
-            return c.split('=', 1)[1]
-    # REST API v1
-    cookie_header = (event.get('headers') or {}).get('cookie', '')
-    cookies = dict(c.strip().split('=', 1) for c in cookie_header.split(';') if '=' in c)
-    return cookies.get(name)
-
-def resp(status_code, body, cookie=None):
-    response = {
-        'statusCode': status_code,
-        'headers':    {'Content-Type': 'application/json'},
-        'body':       json.dumps(body)
-    }
-    if cookie:
-        response['headers']['Set-Cookie'] = cookie
-    return response
+    except ValueError as e:
+        print(f"Error {e}")
+        return {
+            "statusCode": 401,
+            "headers": { "Content-Type": "application/json" },
+            "body": f"Error: {e}"
+        } 

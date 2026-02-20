@@ -5,9 +5,9 @@ import * as GameData from './gameData.js';
 import * as Board from './board.js';
 import * as First10 from './first10.js';
 
-export let _user={};
+userDefaults = {};
 
-_user.controls = {
+userDefaults.controls = {
         "preferColor": "random",
         "minimumTurns": 1,
         "maximumTurns": 10,
@@ -19,9 +19,11 @@ _user.controls = {
         "theme": "classic",
         "animation": false	//TBD fix
     };
-_user.idInfo = { "picture": "/images/login.png" };
-_user.sessions = [];
-_user.missed = [];
+userDefaults.idinfo = {};
+userDefaults.sessions = [];
+userDefaults.missed = [];
+export let _user = {};
+setUser(userDefaults);
 
 export function init() {
      populateUserProfile();
@@ -35,13 +37,19 @@ export function init() {
     setCurrentEcoCode(controlGet("ecoCode"));
 //TBD fix		"animation": false
 
-
-
     show("container-sb-body","sb-body-settings","flex");
  }
 
 let gamesPlayed = 0;
 let sessionResults = {"blue":0, "green":0, "yellow":0, "red":0};
+
+export function setUser(data = userDefaults) {
+    if( ! "sessions" in data ) data['sessions'] = [];
+    if( ! "missed" in data ) data['missed'] = [];
+    if( ! "controls" in data ) data['controls'] = userDefaults.controls;
+    _user = data;
+    setLoginState();
+}
 
 export function controlGet(control) {
     return _user["controls"][control];
@@ -50,6 +58,16 @@ export function controlGet(control) {
 export function controlSet(control, value) {
     _user["controls"][control] = value;
     queueUserSave();
+}
+
+function setLoginState() {
+    if( _user["idinfo"] && _user["idinfo"]["picture"] ) {
+        document.getElementById('loginDiv').style.display = "none";
+        document.getElementById('profileDiv').style.display = "flex";
+    } else {
+        document.getElementById('loginDiv').style.display = "flex";
+        document.getElementById('profileDiv').style.display = "none";
+    }
 }
 
 let saveIsQueued = false;
@@ -256,13 +274,11 @@ function playMoves( moves) {
 
 function populateUserProfile() {
     // Hide login, show profile
-    const loginDiv = document.getElementById('loginDiv');
-    loginDiv.style.display = "none";
+    document.getElementById('loginDiv').style.display = "none";
+    document.getElementById('profileDiv').style.display = "flex";
     
     const img = document.getElementById('profileImage');
-    img.style.display = "block";
-    
-    img.src = _user["idInfo"]["picture"];
+    img.src = _user["idinfo"]["picture"];
     img.class = "profileImage";
     img.alt = "Show personal history";
    
@@ -333,6 +349,19 @@ document.getElementById('newGameBtn').addEventListener('click', () => {
 document.getElementById('select-white').addEventListener('click', () => {
     pickColor('white');
 });
+document.getElementById('clearMissed').addEventListener('click', () => {
+    clearMissedOpenings();
+});
+document.getElementById('deleteHistory').addEventListener('click', () => {
+    clearAllOpenings();
+});
+document.getElementById('saveSession').addEventListener('click', () => {
+    saveSession();
+});
+document.getElementById('logout').addEventListener('click', () => {
+    First10.logout();
+});
+
 
 const buttons = document.querySelectorAll('.replay-button');
 buttons.forEach(button => {
