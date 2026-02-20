@@ -5,7 +5,7 @@ import * as GameData from './gameData.js';
 import * as Board from './board.js';
 import * as First10 from './first10.js';
 
-userDefaults = {};
+const userDefaults = {};
 
 userDefaults.controls = {
         "preferColor": "random",
