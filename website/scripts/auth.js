@@ -15,7 +15,7 @@ function login() {
 
 async function onAuthCode(response) {
     // send code to backend to exchange for tokens
-    const res = await fetch(`${API_BASE}/api/auth/login`, {
+    const res = await fetch(`${API_BASE}/v1/verifyToken/login`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ code: response.code })
@@ -56,7 +56,7 @@ function isTokenExpired() {
 }
 
 async function refreshToken() {
-    const res = await fetch(`${API_BASE}/api/auth/refresh`, {
+    const res = await fetch(`${API_BASE}/v1/verifyToken/refresh`, {
         method:      'POST',
         credentials: 'include'  // sends cookie with user id
     });
@@ -67,7 +67,7 @@ async function refreshToken() {
 
 // ── Logout ─────────────────────────────────────────────────────────────────
 async function logout() {
-    await fetch(`${API_BASE}/api/auth/logout`, {
+    await fetch(`${API_BASE}/v1/verifyToken/logout`, {
         method:      'POST',
         credentials: 'include'
     });
