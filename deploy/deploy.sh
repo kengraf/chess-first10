@@ -44,8 +44,6 @@ website() {
     pushd ../website
     cd data
     aws s3 sync . s3://$S3BUCKET/data --content-type "application/json"
-    cd ../scripts
-    aws s3 sync . s3://$S3BUCKET/scripts --content-type "application/javascript"
     cd ../
     aws s3 sync . s3://$S3BUCKET/
     popd
