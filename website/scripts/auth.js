@@ -40,9 +40,6 @@ export function login() {
 		return;
 	}
 
-    if( authenticatedSession() )
-		return;
-
 	// Start the OIDC flow
 	google.accounts.id.initialize({
 		client_id: CLIENT_ID,
