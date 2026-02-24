@@ -1,6 +1,7 @@
 import * as GameData from './gameData.js';
 import * as Board from './board.js'
 import * as Sidebar from './sidebar.js'
+import * as Auth from './auth.js'
 
 // ------------ global variables ----------------
 
@@ -14,17 +15,28 @@ _globals.nextNode = 0;
 _globals.steps = [];
 _globals.peekSteps = [];
 _globals.playingAs = "white";
-_globals.sessionCookie = "";
-_globals.userCookie = "";
 _globals.bestMove = "";
 _globals.ecoMoves = [];
 
+/* =========+++++== COOKIES ==++++++++++========= 
+We do a few odd things with cookies to help with
+localhost testing.
+- Override cookies can be passed in as URL parameters,
+for testing on localhost where we can't do real
+authentication.  These users are anonymous with no history.
+- "user" cookie is the user's Google sub value
+- "session" cookie is a random UUID.
+Both are stored in the history database to authorize
+updates.
+*/
+_globals.userCookie = "";
+_globals.sessionCookie = "";
 
 // ---------- Code to run the game -------------
 function init() {
 
 	// It is OK if there are none
-	checkSessionCookies();
+	Auth.checkSessionCookies();
 	
 	if( ! readParameters() )
 		// Reroute to error page
@@ -47,30 +59,39 @@ export function openingActions() {
 	
 	if( showSplash ) {
 		showSplash = false;
-		if( _globals.sessionCookie == "" ) {
+		if( ! Auth.activeSession() ) {
 			// Show splash page, dismiss button recurses
-			document.getElementById('splash').style.display='grid';
+			showInfoWindow('hello');
 			return;
 		}
 	}
 	// Dismiss the splash page if still visible
-	document.getElementById('splash').style.display='none';
+	closeInfoWindow();
 	
-	if( showSignin ) {
-		showSignin = false;
-		if( _globals.userCookie == "" ) {
-			// Prompt for login, this function recurses
-			showGoogleSigninButton();
-			return;
-		}
-	}
+	// This does nothing if already active
+	Auth.login();
 
+	// Show the game controls
 	// Generate sidebar and UI elements
 	Sidebar.init('container-sb');
 	Sidebar.show("container-sb-body","sb-body-settings","flex");
-	
 }
 
+export function showInfoWindow(target) {
+	const html = (target == 'hello') ? splashHTML : infoHTML;
+	const div = document.getElementById('splash');
+	div.style.display='grid';
+	div.innerHTML = html;
+	if (target == 'hello')  {
+		document.getElementById('splash').addEventListener("click", (e) => {
+				 closeInfoWindow()});
+		}
+	document.getElementById('dismiss').addEventListener("click", (e) => {
+	 closeInfoWindow()});}
+
+export function closeInfoWindow(target) {
+	document.getElementById('splash').style.display='none';
+}
 
 function readParameters() {
 	const queryString = window.location.search;
@@ -85,102 +106,62 @@ function readParameters() {
 		const cookies = s.split(";");
 		for(const c of cookies) {
 			const [name, value] = c.split(",");
-			if( name == "session" )
-				_globals.sessionCookie = value;
-			if( name == "user" )
+			if( name == "user" ) {
 				_globals.userCookie = value;
-		}
+				Sidebar._user['sub'] = value;
+			}
+			if( name == "session" ) {
+				_globals.sessionCookie = value;
+			}
+				}
 	}
 
 	return true;
 }
 
-/*
--------- Allow for faking the backend calls --------
-python server used for test can't handle posts, queries
-*/
-export function isLocalHost(hostname = window.location.hostname) {
-  return ['localhost', '127.0.0.1', '::1', ''].includes(hostname);
-}
 
-function checkSessionCookies() {
-	const cookies = document.cookie;
-	let c = cookies.split('; ').find(row => row.startsWith('session='));
-	if( c ) _globals.sessionCookie = c.split('=')[1];
-	
-	c = cookies.split('; ').find(row => row.startsWith('user='));
-	if( c ) _globals.userCookie = c.split('=')[1];
-}
+const splashHTML = `<div class="splashCard">
+<button class="dismiss" id="dismiss">✕</button>
+<div class="title">
+	Welcome to First 10
+</div>
+<div class="splashText">
+	<ul>
+	<li>First10 is a simple chess game focused on the opening 10 moves. Curated from over 1.6 million games played by masters. Play black, white, or let the game decide.</li>
+	<li>Get AI explanations for your move and the move made by masters</li>
+	<li>You can optionally focus on common openings and ECO codes.</li>
+	<li>Logins are not required, but if you do. The game will keep track of your success and allow for replaying missed openings.</li>
+	<li>To start a new game: Click on an empty square or press key.</li>
+	<li>BETA WARNING: This game is in development and may not be fully functional.<a class="s-link yellow" href="https://github.com/kengraf/chess-first10/issues">Report an Issue.</a></li>
+	</ul>
+</div>
+</div>
+<button class="splash-button" id="splash-button">Let's get started!</button>'`
 
-async function handleLocalCredential() {
-	try {
-		const response = await fetch('/v1/verifyToken');
-	
-		if (!response.ok) {
-			throw new Error(`HTTP error! status: ${response.status}`);
-		}
-		
-		let text = await response.text();
-		_user = JSON.parse(text).body;
-	} catch (error) {
-		console.error('Error fetching local credential:', error);
-	}
-	openingActions();
-}
+const infoHTML = `<div class="splashCard">
+<button class="dismiss" id="dismiss">✕</button>
+<div class="title">
+	How to submit feature requests and report issues
+</div>
+<div class="splashText">
+Reporting a problem
+Cut& paste the log (most browsers) right-click anywhere on the page → Inspect → click the Console tab.  Or use keyboard shortcuts:
 
-function handleCredentialResponse(response) {
-	const idToken = response.credential;
+F12
+Ctrl+Shift+J (Windows) — opens directly to Console
+Cmd+Option+J (Mac) — opens directly to Console
+</div>
+</div>`
+// Catch all mistakes to stop user experience from freezing
+window.addEventListener('error', (e) => {
+  console.error('Uncaught error:', e.message, `(${e.filename}:${e.lineno})`);
+  if (e.error?.stack) console.error(e.error.stack);
+});
 
-	// Send the token to your backend via POST ---- GET
-	fetch('https://chess-first10.kengraf.com/v1/verifyToken', {
-	method: 'POST',
-	headers: {
-		'Content-Type': 'application/json',
-	},
-	body: JSON.stringify({ idToken }),
-	})
-	.then(response => {
-		if (!response.ok) {
-			throw new Error(`Token verification failed: ${response.status}`);
-		}
-		return response.json();
-	})
-	.then(data => {
-		console.log('Data fetched:', data);
-		_globals.userCookie = data["sub"];
-		Sidebar.setUser(data);
-	})
-	.catch(error => {
-		console.error('Error verifying token:', error);
-	});
-	openingActions();
-}
-
-function logout() {
-	_globals.userCookie = "";
-	_globals.sessionCookie = "";
-	document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-	document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-	Sidebar.setUser(null);
-	document.getElementById("loginDiv").style.display = 'flex';
-	document.getElementById("profileDiv").style.display = 'none';
-}
-
-// Render the Google Sign-In button
-export function showGoogleSigninButton() {
-	if( isLocalHost() ) {
-		//  Fake for testing; retrieve local data
-		handleLocalCredential();
-		return;
-	}
-		
-    google.accounts.id.initialize({
-        client_id: '1030435771551-qnikf54b4jhlbdmm4bkhst0io28u11s4.apps.googleusercontent.com',
-        callback: handleCredentialResponse,
-		use_fedcm_for_prompt: true,
-    });
-    google.accounts.id.prompt(); 
-}
+window.addEventListener('unhandledrejection', (e) => {
+  console.error('Unhandled promise rejection:', e.reason);
+  if (e.reason?.stack) console.error(e.reason.stack);
+});
 
 // Kick off execution
 init();

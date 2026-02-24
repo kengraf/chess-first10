@@ -1,1 +1,23 @@
-[{"blue": 0, "green": 0, "yellow": 0, "red": 0, "date": 1771255426663}, {"blue": 0, "green": 0, "yellow": 0, "red": 0, "date": 1771255426663}]
+{
+    "sessions": [], 
+    "missed": [], 
+    "sub": "test", 
+    "idInfo": {
+        "sub": "test", 
+        "email_verified": true, 
+        "iss": "https://accounts.google.com", 
+        "given_name": "Ken", 
+        "nonce": "not_provided", 
+        "picture": "images/bk.png", 
+        "aud": "1030435771551-qniksercontent.com", 
+        "nbf": 1771518471, 
+        "azp": "1030435771551-qnik4.apps.googleusercontent.com", 
+        "name": "Wooba Gooba", 
+        "exp": 1771522371, 
+        "family_name": "Gooba", 
+        "iat": 1771518771, 
+        "email": "wooba@gmail.com", 
+        "session": "59de83df34eac",
+        "jti": "59de83df34eac"
+    }
+}

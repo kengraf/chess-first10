@@ -120,6 +120,8 @@ function clickEvent(e) {
                showPossibles( _activePiece );
                return null;
             }
+        } else {
+            Sidebar.newGame();
         }
     }
     _audioResult = _audioIllegal;
@@ -150,6 +152,8 @@ function pickedValidPiece(node) {
         // Clicked an unoccupied square
         return null;
     }
+    if( node.className != 'piece' )
+        node = node.querySelector('.piece');
     let piece = node.getAttribute('data-group');
     if( piece == null ) {
         // Empty square

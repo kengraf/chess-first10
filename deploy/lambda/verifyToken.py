@@ -39,7 +39,7 @@ def handler(event, context):
         sub = idinfo['sub']
         response = table.get_item(Key={'sub': sub})
         user_uuid = str(uuid.uuid4())
-        idinfo['user_uuid'] = user_uuid 
+        idinfo['session'] = user_uuid 
         item = response.get('Item')
         
         # Save new user
@@ -66,7 +66,7 @@ def handler(event, context):
         # Eturn what is now in table
         response = {
             "cookies": [
-                f"session={idinfo['user_uuid']}; Secure=true; SameSite=Lax; Path=/",
+                f"session={idinfo['session']}; Secure=true; SameSite=Lax; Path=/",
                 f"user={sub}; Secure=true; SameSite=Lax; Path=/; Max-Age=31536000"
             ],
             "isBase64Encoded": False,

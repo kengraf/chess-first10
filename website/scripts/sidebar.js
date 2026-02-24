@@ -3,7 +3,7 @@ import { _globals } from './first10.js';
 
 import * as GameData from './gameData.js';
 import * as Board from './board.js';
-import * as First10 from './first10.js';
+import * as First10 from './first10.js'
 
 const userDefaults = {};
 
@@ -35,7 +35,6 @@ export function init() {
     loadChessOpenings();
     setSessionsTable();
     setCurrentEcoCode(controlGet("ecoCode"));
-//TBD fix		"animation": false
 
     show("container-sb-body","sb-body-settings","flex");
  }
@@ -44,9 +43,9 @@ let gamesPlayed = 0;
 let sessionResults = {"blue":0, "green":0, "yellow":0, "red":0};
 
 export function setUser(data = userDefaults) {
-    if( ! "sessions" in data ) data['sessions'] = [];
-    if( ! "missed" in data ) data['missed'] = [];
-    if( ! "controls" in data ) data['controls'] = userDefaults.controls;
+    if( ! data.hasOwnProperty("sessions") ) data['sessions'] = [];
+    if( ! data.hasOwnProperty("missed") ) data['missed'] = [];
+    if( ! data.hasOwnProperty("controls") ) data['controls'] = userDefaults.controls;
     _user = data;
     setLoginState();
 }
@@ -56,35 +55,42 @@ export function controlGet(control) {
 }
 
 export function controlSet(control, value) {
-    _user["controls"][control] = value;
-    queueUserSave();
-}
-
-function setLoginState() {
-    if( _user["idinfo"] && _user["idinfo"]["picture"] ) {
-        document.getElementById('loginDiv').style.display = "none";
-        document.getElementById('profileDiv').style.display = "flex";
-    } else {
-        document.getElementById('loginDiv').style.display = "flex";
-        document.getElementById('profileDiv').style.display = "none";
+    if( _user["controls"][control] != value ) {
+        _user["controls"][control] = value;
+        userSave();
     }
 }
 
+function setLoginState() {
+    if( _user["idinfo"]) {
+        if( _user["idinfo"]["picture"] ) {
+            populateUserProfile();
+        }
+    }
+}
+
+
 let saveIsQueued = false;
-export function queueUserSave() {
+export function userSave(delay = 5*60*1000) {
     if( saveIsQueued ) {
         return;
     }
     saveIsQueued = true;
+    const saveUser = _user;  // Don't alter current state
+    const s = sessionResults;
+    s["date"] = Date.now();
+    _user.sessions.push(s);
+    saveUser.sessions.push(s);
+    console.log(saveUser);
     setTimeout(async () => {
       const response = await fetch('/v1/databaseItems', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(_user)
+        body: JSON.stringify(saveUser)
         });
     const data = await response.json();
     saveIsQueued = false;
-    }, 5 * 60 * 1000); // 5 minutes
+    }, delay);
 }
 
 export function recordResult(notation){
@@ -215,6 +221,7 @@ function setResultsTable(notation) {
 
         Board.createArrow();
     }
+    console.log('move: ${_globals.yourMove} grade:${gradeId} PGN:${_globals.PGN}');
     return gradeId;
 }
 
@@ -249,14 +256,15 @@ function pickColor(color){
     highlightCrown(color);
 }
 
-function newGame() {
+export function newGame() {
     const div = document.getElementById("splash");
     div.style.display = 'none';
     
     let moves = GameData.getOpening();
+    show("container-sb-body","sb-body-playing","flex");
 
 //TBD TESTING: moves = ['e4', ... ];
-// castle,promote,enpassant test
+// castle,promote,enpassant tests
 // moves=['e3','a5','Nf3','b5','Be2','c5','O-O','a4','b4','axb3','h3','bxa2','h4','axb1=r'];
     playMoves(moves);
 }
@@ -273,13 +281,11 @@ function playMoves( moves) {
 }
 
 function populateUserProfile() {
-    // Hide login, show profile
-    document.getElementById('loginDiv').style.display = "none";
-    document.getElementById('profileDiv').style.display = "flex";
-    
-    const img = document.getElementById('profileImage');
-    img.src = _user["idinfo"]["picture"];
-    img.class = "profileImage";
+    // Hide login button, show image    
+    const img = document.getElementById('userAvatar');
+    let pic = (_user["idinfo"] && _user["idinfo"]["picture"]) ? _user["idinfo"]["picture"] : "images/bk.png";
+    img.src = pic;
+    img.class = "userAvatar";
     img.alt = "Show personal history";
    
     img.addEventListener('load', () => {
@@ -291,7 +297,7 @@ function populateUserProfile() {
     });
     
     img.addEventListener("click", () => {
-        show("container-sb-body","sb-body-profile","flex");
+        show("container-sb-body","sb-body-history","flex");
     });
 }
 
@@ -301,7 +307,7 @@ document.addEventListener('visibilitychange', function () {
         let s = sessionResults;
         s["date"] = Date.now();
         _user.sessions.push(s);
-        navigator.sendBeacon('/v1/databaseItems', JSON.stringify( _user.sessions ));
+        navigator.sendBeacon('/v1/databaseItems', JSON.stringify( _user ));
     }
 });
 
@@ -328,38 +334,9 @@ document.getElementById('yourMove').addEventListener('click', () => {
 document.getElementById('copyPGN-btn').addEventListener('click', () => {
     copyPGN();
 });
- 
-document.getElementById('splash-button').addEventListener('click', () => { First10.openingActions(); });
- 
-document.getElementById('loginDiv').addEventListener('click', () => {
-    if( _globals.userCookie ==  "" )
-        First10.showGoogleSigninButton()
-   else
-        show("container-sb-body","sb-body-result","flex");
-
-});
-document.getElementById('settingsBtn').addEventListener('click', () => {
-    show("container-sb-body","sb-body-settings","flex");
-});
-document.getElementById('newGameBtn').addEventListener('click', () => {
-    show("container-sb-body","sb-body-playing","flex");
-    newGame();
-});
 
 document.getElementById('select-white').addEventListener('click', () => {
     pickColor('white');
-});
-document.getElementById('clearMissed').addEventListener('click', () => {
-    clearMissedOpenings();
-});
-document.getElementById('deleteHistory').addEventListener('click', () => {
-    clearAllOpenings();
-});
-document.getElementById('saveSession').addEventListener('click', () => {
-    saveSession();
-});
-document.getElementById('logout').addEventListener('click', () => {
-    First10.logout();
 });
 
 
@@ -446,11 +423,12 @@ async function loadChessOpenings() {
     });
 }
 
-
-function bestMove() {
-    _globals.bestMove = _globals.peekSteps[0].Move
-    return _globals.bestMove;
-}
+document.addEventListener('keyup', (e) => {
+    if (e.ctrlKey || e.shiftKey || e.altKey || e.metaKey)
+        // prevent extra actions when trying to see console
+        return;
+    newGame();
+});
 
 function triggerFireworks() {
     confetti({ particleCount: 100,  spread: 70,
@@ -589,3 +567,139 @@ function showTotalsBar(results, barId) {
         }
     });
 }
+
+/* ---------------------- Styled dropdown ----------------------*/
+ // ── Data ──────────────────────────────────────────────
+  const config = {
+    trigger: { avatarURL: 'images/bk.png', name: 'anonymous' },
+
+    // 2-column grid items
+    gridItems: [
+      { label: 'Game controls',  action: 'controls' },
+      { label: 'New Game',       action: 'newGame' },
+      { label: 'History',        action: 'history' },
+      { label: 'Clear misses',   action: 'clearMissed', badge:  _user.missed.length },
+      { label: 'Last result',    action: 'result' },
+      { label: 'Delete sessions', action: 'delHistory', badge:  _user.sessions.length },
+      { label: 'Info/Feedback',  action: 'info' },
+      { label: 'Save session',   action: 'save' },
+    ],
+
+    // full-width items below divider
+    footerItems: [
+      { label: 'Sign in',       action: 'changeUser', variant: 'danger' },
+        ],
+  };
+
+  // ── Actions ───────────────────────────────────────────
+  const actions = {
+    controls:    () => show("container-sb-body","sb-body-settings","flex"),
+    history:     () => show("container-sb-body","sb-body-history","flex"),
+    result:      () => show("container-sb-body","sb-body-result","flex"),
+    info:        () => First10.showInfoWindow('info'),
+    newGame:     () => newGame(),
+    clearMissed: () => { _user.missed = []; userSave(0); },
+    delHistory:  () => { _user.sessions = _user.missed = []; userSave(0); },
+    save:        () => userSave(0),
+    changeUser:  () => changeUserState(),
+  };
+
+  // ── Builders ──────────────────────────────────────────
+  function buildTrigger({ avatarURL, name }) {
+    const btn = document.createElement('button');
+    btn.className = 'dropdown-trigger';
+
+    const avatar = document.createElement('img');
+    avatar.className = 'avatar';
+    avatar.id = `userAvatar`;
+    avatar.setAttribute("src", avatarURL);
+  
+    const label = document.createElement('span');
+    label.textContent = name;
+
+    const chevron = document.createElement('span');
+    chevron.className = 'chevron';
+    chevron.textContent = '▼';
+
+    btn.append(avatar, label, chevron);
+    return btn;
+  }
+
+  function buildMenuItem({ label, action, variant, badge }) {
+    const el = document.createElement('div');
+    el.className = 'menu-item' + (variant ? ` ${variant}` : '');
+    el.dataset.action = action;
+    el.textContent = label;
+
+    if (badge) {
+      const b = document.createElement('span');
+      b.className = 'item-badge';
+      b.textContent = badge+'';
+      el.appendChild(b);
+    }
+
+    el.addEventListener('click', () => pick(el));
+    return el;
+  }
+
+  function buildMenu({ gridItems, footerItems }) {
+    const menu = document.createElement('div');
+    menu.className = 'dropdown-menu';
+
+    // 2-column grid section
+    const grid = document.createElement('div');
+    grid.className = 'menu-grid';
+    gridItems.forEach(item => grid.appendChild(buildMenuItem(item)));
+    menu.appendChild(grid);
+
+    // divider
+    const divider = document.createElement('div');
+    divider.className = 'menu-divider';
+    menu.appendChild(divider);
+
+    // full-width footer items
+    const single = document.createElement('div');
+    single.className = 'menu-single';
+    footerItems.forEach(item => single.appendChild(buildMenuItem(item)));
+    menu.appendChild(single);
+
+    return menu;
+  }
+
+  function buildDropdown(config) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'dropdown';
+    wrapper.id = 'dd';
+
+    const trigger = buildTrigger(config.trigger);
+    const menu = buildMenu(config);
+
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      wrapper.classList.toggle('open');
+    });
+
+    wrapper.append(trigger, menu);
+    return wrapper;
+  }
+
+  // ── Pick handler ──────────────────────────────────────
+  function pick(el) {
+    el.closest('.dropdown').classList.remove('open');
+    const fn = actions[el.dataset.action];
+    if (fn) fn();
+  }
+
+  // ── Close on outside click / Escape ───────────────────
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
+    }
+  });
+
+  // ── Add Sidebar dropdown ─────────────────────────────────────────────
+  document.getElementById('sb-header').appendChild(buildDropdown(config));
