@@ -48,7 +48,7 @@ def handler(event, context):
             item["sessions"] = []
             item["missed"] = []
 
-        item['idinfo'] = idinfo  # recent auth data supercedes db
+        item['idInfo'] = idinfo  # recent auth data supercedes db
         item.pop('sub', None)    
         print(item)
         update_expr = "SET " + ", ".join(f"#{k} = :{k}" for k in item.keys())

@@ -19,7 +19,7 @@ userDefaults.controls = {
         "theme": "classic",
         "animation": false	//TBD fix
     };
-userDefaults.idinfo = {};
+userDefaults.idInfo = {"sub":""};
 userDefaults.sessions = [];
 userDefaults.missed = [];
 export let _user = {};
@@ -46,8 +46,9 @@ export function setUser(data = userDefaults) {
     if( ! data.hasOwnProperty("sessions") ) data['sessions'] = [];
     if( ! data.hasOwnProperty("missed") ) data['missed'] = [];
     if( ! data.hasOwnProperty("controls") ) data['controls'] = userDefaults.controls;
+    if( ! data.hasOwnProperty("idInfo") ) data['idInfo'] = userDefaults.idInfo;
     _user = data;
-    setLoginState();
+    populateUserProfile();
 }
 
 export function controlGet(control) {
@@ -61,14 +62,18 @@ export function controlSet(control, value) {
     }
 }
 
-function setLoginState() {
-    if( _user["idinfo"]) {
-        if( _user["idinfo"]["picture"] ) {
-            populateUserProfile();
-        }
-    }
+export function toggleUserState() {
+    const hasAuth = _globals.isAuthenicated;
+    const el = document.getElementById('menu-toggleLogin');
+    if( hasAuth ) {
+        // Go back to anonymous
+        setUser();
+        el.textContent = "Sign in";
+     } else {
+        el.textContent = "Sign out";
+     }
+    _globals.isAuthenicated = !hasAuth;
 }
-
 
 let saveIsQueued = false;
 export function userSave(delay = 5*60*1000) {
@@ -283,7 +288,7 @@ function playMoves( moves) {
 function populateUserProfile() {
     // Hide login button, show image    
     const img = document.getElementById('userAvatar');
-    let pic = (_user["idinfo"] && _user["idinfo"]["picture"]) ? _user["idinfo"]["picture"] : "images/bk.png";
+    let pic = (_user["idInfo"] && _user["idInfo"]["picture"]) ? _user["idInfo"]["picture"] : "images/bk.png";
     img.src = pic;
     img.class = "userAvatar";
     img.alt = "Show personal history";
@@ -587,7 +592,7 @@ function showTotalsBar(results, barId) {
 
     // full-width items below divider
     footerItems: [
-      { label: 'Sign in',       action: 'changeUser', variant: 'danger' },
+      { label: 'Sign in',       action: 'toggleLogin', variant: 'danger' },
         ],
   };
 
@@ -601,7 +606,7 @@ function showTotalsBar(results, barId) {
     clearMissed: () => { _user.missed = []; userSave(0); },
     delHistory:  () => { _user.sessions = _user.missed = []; userSave(0); },
     save:        () => userSave(0),
-    changeUser:  () => changeUserState(),
+    toggleLogin:  () => toggleUserState(),
   };
 
   // ── Builders ──────────────────────────────────────────
@@ -629,6 +634,7 @@ function showTotalsBar(results, barId) {
     const el = document.createElement('div');
     el.className = 'menu-item' + (variant ? ` ${variant}` : '');
     el.dataset.action = action;
+    el.id = "menu-" + action;
     el.textContent = label;
 
     if (badge) {

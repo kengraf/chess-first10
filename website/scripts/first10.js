@@ -59,7 +59,7 @@ export function openingActions() {
 	
 	if( showSplash ) {
 		showSplash = false;
-		if( ! Auth.activeSession() ) {
+		if( _user.idInfo.sub == "" ) {
 			// Show splash page, dismiss button recurses
 			showInfoWindow('hello');
 			return;

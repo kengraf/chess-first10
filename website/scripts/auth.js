@@ -4,46 +4,52 @@ import * as Sidebar from './sidebar.js'
 
 const CLIENT_ID = "1030435771551-qnikf54b4jhlbdmm4bkhst0io28u11s4.apps.googleusercontent.com";
 
-export function logout() {
-	document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-	document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
-	// Set back to anonymous user and defaults
-	Sidebar.setUser();
-
-	// Clear all cookies
-	document.cookie.split('; ').forEach(cookie => {
-    	const name = cookie.split('=')[0];
-    	document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
-  	});
+export async function authenticatedSession() {
+	const data = await fetchUserData();
+	if( data != null ) {
+		setUserData(data);
+		Sidebar.toggleUserState();
+		return true;
+	}
+	return false;
 }
 
-export function activeSession() {
-	return (_globals.sessionCookie != "");
+async function fetchUserData() {
+	// Requires proper cookie values for success
+  const res = await fetch('/v1/databaseItems');
+  if (!res.ok) {
+	const body = await res.text(); // grab error body if server sends one
+	console.log(`HTTP error: ${res.status}: ${body || res.statusText}`);
+	return null;
+  }
+  return res.json();
 }
+
 
 export function currentUsername() {
-	if( _user['idinfo'] && _user['idinfo']['given_name'] ) {	
-		return _user['idinfo']['given_name'];
+	if( _user['idInfo'] && _user['idInfo']['given_name'] ) {	
+		return _user['idInfo']['given_name'];
 	}
 	return "Anonymous";
 }
 export function login() {
 
-     if( activeSession() )
+	if( isLocalHost() ) {
+		//  Fake OIDC for testing; retrieve local data
+		useLocalCredential();
+		return;
+	}
+
+    if( authenticatedSession() )
 		return;
 
-	if( isLocalHost() ) {
-		//  Fake for testing; retrieve local data
-		useLocalCredential();
-	} else {
-		google.accounts.id.initialize({
-			client_id: CLIENT_ID,
-			callback: handleCredentialResponse,
-			use_fedcm_for_prompt: true,
-		});
-		google.accounts.id.prompt(); 
-	}
+	// Start the OIDC flow
+	google.accounts.id.initialize({
+		client_id: CLIENT_ID,
+		callback: handleCredentialResponse,
+		use_fedcm_for_prompt: true,
+	});
+	google.accounts.id.prompt(); 
 }
 
 /*
