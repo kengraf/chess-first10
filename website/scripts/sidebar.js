@@ -23,7 +23,6 @@ userDefaults.idInfo = {"sub":"", picture:"/images/bk.png"};
 userDefaults.sessions = [];
 userDefaults.missed = [];
 export let _user = {};
-setUser(userDefaults);
 
 export function init() {
      populateUserProfile();
