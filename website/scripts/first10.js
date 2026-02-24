@@ -1,3 +1,5 @@
+import { _user } from './sidebar.js';
+
 import * as GameData from './gameData.js';
 import * as Board from './board.js'
 import * as Sidebar from './sidebar.js'
