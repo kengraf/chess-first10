@@ -19,7 +19,7 @@ userDefaults.controls = {
         "theme": "classic",
         "animation": false	//TBD fix
     };
-userDefaults.idInfo = {"sub":""};
+userDefaults.idInfo = {"sub":"", picture:"/images/bk.png"};
 userDefaults.sessions = [];
 userDefaults.missed = [];
 export let _user = {};
