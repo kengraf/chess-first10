@@ -86,10 +86,10 @@ export function showInfoWindow(target) {
 	div.innerHTML = html;
 	if (target == 'hello')  {
 		document.getElementById('splash').addEventListener("click", (e) => {
-				 closeInfoWindow(), openingActions()});
+				 closeInfoWindow(); openingActions()});
 		}
 	document.getElementById('dismiss').addEventListener("click", (e) => {
-	 closeInfoWindow(), openingActions();});
+	 closeInfoWindow(); openingActions();});
 }
 export function closeInfoWindow(target) {
 	document.getElementById('splash').style.display='none';
@@ -137,8 +137,8 @@ const splashHTML = `<div class="splashCard">
 	<li>BETA WARNING: This game is in development and may not be fully functional.<a class="s-link yellow" href="https://github.com/kengraf/chess-first10/issues">Report an Issue.</a></li>
 	</ul>
 </div>
-</div>
-<button class="splash-button" id="splash-button">Let's get started!</button>'`
+<button class="splash-button" id="splash-button">Let's get started!</button>'
+</div>`
 
 const infoHTML = `<div class="splashCard">
 <button class="dismiss" id="dismiss">✕</button>
