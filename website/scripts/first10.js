@@ -84,11 +84,11 @@ export function showInfoWindow(target) {
 	div.innerHTML = html;
 	if (target == 'hello')  {
 		document.getElementById('splash').addEventListener("click", (e) => {
-				 closeInfoWindow()});
+				 closeInfoWindow(), openingActions()});
 		}
 	document.getElementById('dismiss').addEventListener("click", (e) => {
-	 closeInfoWindow()});}
-
+	 closeInfoWindow(), openingActions();});
+}
 export function closeInfoWindow(target) {
 	document.getElementById('splash').style.display='none';
 }
