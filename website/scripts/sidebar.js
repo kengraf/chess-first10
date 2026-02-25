@@ -286,8 +286,10 @@ function playMoves( moves) {
 
 function populateUserProfile() {
     // Hide login button, show image    
+    const label = document.getElementById('menu-label');
+    label.text = (_user.idInfo.given_name) ? _user.idInfo.given_name: "Anonymous";
     const img = document.getElementById('userAvatar');
-    let pic = (_user["idInfo"] && _user["idInfo"]["picture"]) ? _user["idInfo"]["picture"] : "images/bk.png";
+    let pic = (_user["idInfo"]["picture"]) ? _user["idInfo"]["picture"] : "images/bk.png";
     img.src = pic;
     img.class = "userAvatar";
     img.alt = "Show personal history";
@@ -619,6 +621,7 @@ function showTotalsBar(results, barId) {
     avatar.setAttribute("src", avatarURL);
   
     const label = document.createElement('span');
+    label.id = "menu-label";
     label.textContent = name;
 
     const chevron = document.createElement('span');
