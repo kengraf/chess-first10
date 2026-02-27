@@ -45,8 +45,20 @@ def handler(event, context):
         # Save new user
         if item is None:
             item = {}
-            item["sessions"] = []
+            item["sessions"] = [{"blue":0, "green":0, "yellow":0, "red":0, "date":0}]
             item["missed"] = []
+            item["controls"] = {
+                "preferColor": "random",
+                "minimumTurns": 1,
+                "maximumTurns": 10,
+                "ecoCode": "", ""
+                "showBestArrow": False,
+                "playSounds": False,
+                "replay": "never",
+                "showHighlights": False,
+                "theme": "classic",
+                "animation": False
+            }
 
         item['idInfo'] = idinfo  # recent auth data supercedes db
         item.pop('sub', None)    
