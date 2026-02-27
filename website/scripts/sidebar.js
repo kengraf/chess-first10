@@ -3,11 +3,12 @@ import { _globals } from './first10.js';
 
 import * as GameData from './gameData.js';
 import * as Board from './board.js';
-import * as First10 from './first10.js'
+import * as First10 from './first10.js';
+import * as Auth from './auth.js';
 
-const userDefaults = {};
-
-userDefaults.controls = {
+const newSession = {"blue":0, "green":0, "yellow":0, "red":0, "date":0};
+const baseUser = {};
+baseUser.controls = {
         "preferColor": "random",
         "minimumTurns": 1,
         "maximumTurns": 10,
@@ -19,10 +20,10 @@ userDefaults.controls = {
         "theme": "classic",
         "animation": false	//TBD fix
     };
-userDefaults.idInfo = {"sub":"", picture:"/images/bk.png"};
-userDefaults.sessions = [];
-userDefaults.missed = [];
-export let _user = userDefaults;
+baseUser.idInfo = {"sub":"", picture:"/images/bk.png", "given_name": "Anonymous"};
+baseUser.sessions = [newSession];
+baseUser.missed = [];
+export let _user = baseUser;
 
 export function init() {
      populateUserProfile();
@@ -31,7 +32,6 @@ export function init() {
     pickColor(controlGet("preferColor"));
     updateSlider();
     loadEcoOpenings();
-    loadChessOpenings();
     setSessionsTable();
     setCurrentEcoCode(controlGet("ecoCode"));
 
@@ -39,13 +39,9 @@ export function init() {
  }
 
 let gamesPlayed = 0;
-let sessionResults = {"blue":0, "green":0, "yellow":0, "red":0};
-
-export function setUser(data = userDefaults) {
-    if( ! data.hasOwnProperty("sessions") ) data['sessions'] = [];
-    if( ! data.hasOwnProperty("missed") ) data['missed'] = [];
-    if( ! data.hasOwnProperty("controls") ) data['controls'] = userDefaults.controls;
-    if( ! data.hasOwnProperty("idInfo") ) data['idInfo'] = userDefaults.idInfo;
+export function setUser(data = baseUser) {
+    if( ! data.hasOwnProperty("controls") ) 
+        data['controls'] = baseUser.controls;
     _user = data;
     populateUserProfile();
 }
@@ -65,7 +61,7 @@ export function toggleUserState() {
     const hasAuth = _globals.isAuthenicated;
     const el = document.getElementById('menu-toggleLogin');
     if( hasAuth ) {
-        // Go back to anonymous
+        // Go back to baseUser values
         setUser();
         el.textContent = "Sign in";
      } else {
@@ -80,32 +76,30 @@ export function userSave(delay = 5*60*1000) {
         return;
     }
     saveIsQueued = true;
-    const saveUser = _user;  // Don't alter current state
-    const s = sessionResults;
-    s["date"] = Date.now();
-    _user.sessions.push(s);
-    saveUser.sessions.push(s);
-    console.log(saveUser);
-    setTimeout(async () => {
-      const response = await fetch('/v1/databaseItems', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(saveUser)
-        });
-    const data = await response.json();
-    saveIsQueued = false;
-    }, delay);
+    _user.sessions[0]["date"] = Date.now();
+    console.log(_user);
+    if( Auth.isLocalhost() == false ) {
+        setTimeout(async () => {
+        const response = await fetch('/v1/databaseItems', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(_user)
+            });
+        const data = await response.json();
+        saveIsQueued = false;
+        }, delay);
+    }
 }
 
 export function recordResult(notation){
     let grade = setResultsTable(notation);
-    sessionResults[grade] += 1;
+    _user.sessions[0][grade] += 1;
     if( grade == "red" ) {
         if (!_user['missed'].includes(_globals.PGN)) {
             _user['missed'].push(_globals.PGN);
         }    
     }
-    showTotalsBar(sessionResults, "resultsBar");
+    showTotalsBar(_user.sessions[0], "resultsBar");
     setSessionsTable();
 }
 
@@ -145,8 +139,6 @@ function setSessionsTable() {
         
     const tbody = document.querySelector("#sessionsTable tbody");
     tbody.innerHTML = "";
-        
-    setSessionRow(sessionResults, tbody);
     _user.sessions.forEach(item => {
         setSessionRow(item, tbody);
     });
@@ -244,7 +236,7 @@ export function highlightCrown(crown) {
 
     for (const e of elements) {
         if(e.id == `select-${crown}` )
-            e.style.border = "4px solid var(--color-yellow-vibrant)";
+            e.style.border = "var(--border-active)";
         else
             e.style.border = 'none';
     }
@@ -287,9 +279,9 @@ function playMoves( moves) {
 function populateUserProfile() {
     // Hide login button, show image    
     const label = document.getElementById('menu-label');
-    label.text = (_user.idInfo.given_name) ? _user.idInfo.given_name: "Anonymous";
+    label.text = _user.idInfo.given_name;
     const img = document.getElementById('userAvatar');
-    let pic = (_user["idInfo"]["picture"]) ? _user["idInfo"]["picture"] : "images/bk.png";
+    let pic = _user["idInfo"]["picture"];
     img.src = pic;
     img.class = "userAvatar";
     img.alt = "Show personal history";
@@ -310,9 +302,7 @@ function populateUserProfile() {
 // Save session when user leaves window
 document.addEventListener('visibilitychange', function () {
     if (document.visibilityState == 'hidden')  {
-        let s = sessionResults;
-        s["date"] = Date.now();
-        _user.sessions.push(s);
+        _user.sessions[0]["date"] = Date.now();
         navigator.sendBeacon('/v1/databaseItems', JSON.stringify( _user ));
     }
 });
@@ -394,40 +384,6 @@ ctlr.addEventListener('change', function() {
     }
     Board.initializeBoard();
 });
-
-async function loadChessOpenings() {
-    const dropdown = document.getElementById('opening-names-dropdown');
-    const allOption = document.createElement('option');
-    allOption.text = "*** all openings ***";
-    allOption.value = "*";
-    dropdown.add(allOption);
-    const url = 'data/opening-names-eco.json';
-
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-
-        data.forEach(obj => {
-            const [name, code] = Object.entries(obj)[0];
-
-            // Create a new option element
-            const option = document.createElement('option');
-            option.text = name;   // e.g., "Caro-Kann"
-            option.value = code;  // e.g., "B10"
-            
-            dropdown.add(option);
-        });
-    } catch (error) {
-        console.error('Error fetching chess data:', error);
-    }
-    dropdown.addEventListener('change', function() {
-        const ecoCode = this.value;
-    
-        if (ecoCode) {
-            setCurrentEcoCode(ecoCode);
-        }
-    });
-}
 
 document.addEventListener('keyup', (e) => {
     if (e.ctrlKey || e.shiftKey || e.altKey || e.metaKey)
@@ -576,10 +532,9 @@ function showTotalsBar(results, barId) {
 
 /* ---------------------- Styled dropdown ----------------------*/
  // ── Data ──────────────────────────────────────────────
-  const config = {
-    trigger: { avatarURL: 'images/bk.png', name: 'anonymous' },
-
-    // 2-column grid items
+  const mainConfig = {
+    height: '60px',
+    trigger: { avatarURL: 'images/bk.png', name: 'Anonymous' },
     gridItems: [
       { label: 'Game controls',  action: 'controls' },
       { label: 'New Game',       action: 'newGame' },
@@ -590,13 +545,29 @@ function showTotalsBar(results, barId) {
       { label: 'Info/Feedback',  action: 'info' },
       { label: 'Save session',   action: 'save' },
     ],
-
-    // full-width items below divider
     footerItems: [
       { label: 'Sign in',       action: 'toggleLogin', variant: 'danger' },
         ],
   };
 
+   const openingsConfig = {
+    height: '30px',
+    trigger: { name: 'Select popular openings' },
+    gridItems: [],
+    footerItems: [
+        { label: "*** All Openings ***", action: 'openALL', badge: "" },
+        { label: "Caro-Kann", action: 'openB10', badge: "B10" },
+        { label: "Catalan", action: 'openE00', badge: "E00" },
+        { label: "King's Gambit", action: 'openC30', badge: "C30" },
+        { label: "Indian Defense", action: 'openA45', badge: "A45" },
+        { label: "Queen's Gambit Accepted", action: 'openD20', badge: "D20" },
+        { label: "Queen's Gambit Declined", action: 'openD30', badge: "D30" },
+        { label: "Ruy Lopez", action: 'openC60', badge: "C60" },
+        { label: "Sicilian", action: 'openB20', badge: "B20" },
+        { label: "Slav", action: 'openD10', badge: "D10" },
+        { label: "Vienna", action: 'openC25', badge: "C25" }
+        ],
+  };
   // ── Actions ───────────────────────────────────────────
   const actions = {
     controls:    () => show("container-sb-body","sb-body-settings","flex"),
@@ -605,9 +576,20 @@ function showTotalsBar(results, barId) {
     info:        () => First10.showInfoWindow('info'),
     newGame:     () => newGame(),
     clearMissed: () => { _user.missed = []; userSave(0); },
-    delHistory:  () => { _user.sessions = _user.missed = []; userSave(0); },
+    delHistory:  () => { _user.sessions.push(newSession); _user.missed = []; userSave(0); },
     save:        () => userSave(0),
     toggleLogin:  () => toggleUserState(),
+
+    openALL:    () => setCurrentEcoCode("B10"),
+    openE00:    () => setCurrentEcoCode("E00"),
+    openC30:    () => setCurrentEcoCode("C30"),
+    openA45:    () => setCurrentEcoCode("A45"),
+    openD20:    () => setCurrentEcoCode("D20"),
+    openD30:    () => setCurrentEcoCode("D30"),
+    openC60:    () => setCurrentEcoCode("C60"),
+    openB20:    () => setCurrentEcoCode("B20"),
+    openD10:    () => setCurrentEcoCode("D10"),
+    openC25:    () => setCurrentEcoCode("C25"),
   };
 
   // ── Builders ──────────────────────────────────────────
@@ -615,11 +597,13 @@ function showTotalsBar(results, barId) {
     const btn = document.createElement('button');
     btn.className = 'dropdown-trigger';
 
-    const avatar = document.createElement('img');
-    avatar.className = 'avatar';
-    avatar.id = `userAvatar`;
-    avatar.setAttribute("src", avatarURL);
-  
+    if( avatarURL ) {
+        const avatar = document.createElement('img');
+        avatar.className = 'avatar';
+        avatar.id = `userAvatar`;
+        avatar.setAttribute("src", avatarURL);
+        btn.append(avatar);
+    }
     const label = document.createElement('span');
     label.id = "menu-label";
     label.textContent = name;
@@ -628,7 +612,7 @@ function showTotalsBar(results, barId) {
     chevron.className = 'chevron';
     chevron.textContent = '▼';
 
-    btn.append(avatar, label, chevron);
+    btn.append(label, chevron);
     return btn;
   }
 
@@ -654,16 +638,18 @@ function showTotalsBar(results, barId) {
     const menu = document.createElement('div');
     menu.className = 'dropdown-menu';
 
-    // 2-column grid section
-    const grid = document.createElement('div');
-    grid.className = 'menu-grid';
-    gridItems.forEach(item => grid.appendChild(buildMenuItem(item)));
-    menu.appendChild(grid);
+     if( gridItems.length != 0 ) {
+        // 2-column grid section
+        const grid = document.createElement('div');
+        grid.className = 'menu-grid';
+        gridItems.forEach(item => grid.appendChild(buildMenuItem(item)));
+        menu.appendChild(grid);
 
-    // divider
-    const divider = document.createElement('div');
-    divider.className = 'menu-divider';
-    menu.appendChild(divider);
+        // divider
+        const divider = document.createElement('div');
+        divider.className = 'menu-divider';
+        menu.appendChild(divider);
+    }
 
     // full-width footer items
     const single = document.createElement('div');
@@ -678,6 +664,7 @@ function showTotalsBar(results, barId) {
     const wrapper = document.createElement('div');
     wrapper.className = 'dropdown';
     wrapper.id = 'dd';
+    wrapper.height = config.height;
 
     const trigger = buildTrigger(config.trigger);
     const menu = buildMenu(config);
@@ -710,4 +697,5 @@ function showTotalsBar(results, barId) {
   });
 
   // ── Add Sidebar dropdown ─────────────────────────────────────────────
-  document.getElementById('sb-header').appendChild(buildDropdown(config));
+  document.getElementById('sb-header').appendChild(buildDropdown(mainConfig));
+  document.getElementById('opening-names-menu').appendChild(buildDropdown(openingsConfig));

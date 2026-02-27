@@ -1,7 +1,19 @@
 {
     "sessions": [], 
     "missed": [], 
-    "sub": "test", 
+    "sub": "test",
+    "controls": {
+        "preferColor": "random",
+        "minimumTurns": 1,
+        "maximumTurns": 10,
+        "ecoCode": "",
+        "showBestArrow": false,
+        "playSounds": false,
+        "replay": "never",
+        "showHighlights": false,
+        "theme": "classic",
+        "animation": false
+        },
     "idInfo": {
         "sub": "test", 
         "email_verified": true, 

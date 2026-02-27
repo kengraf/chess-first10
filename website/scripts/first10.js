@@ -70,8 +70,10 @@ export function openingActions() {
 	// Dismiss the splash page if still visible
 	closeInfoWindow();
 	
-	// This does nothing if already active
-	Auth.login();
+	if( showSignin ) {
+		showSignin = false;
+		Auth.login();
+	}
 
 	// Show the game controls
 	// Generate sidebar and UI elements
@@ -134,26 +136,49 @@ const splashHTML = `<div class="splashCard">
 	<li>You can optionally focus on common openings and ECO codes.</li>
 	<li>Logins are not required, but if you do. The game will keep track of your success and allow for replaying missed openings.</li>
 	<li>To start a new game: Click on an empty square or press key.</li>
-	<li>BETA WARNING: This game is in development and may not be fully functional.<a class="s-link yellow" href="https://github.com/kengraf/chess-first10/issues">Report an Issue.</a></li>
-	</ul>
+	<li>BETA WARNING: This game is in development and may not be fully functional.</li>
+	</ul><br>
+	<a class="button" href="https://github.com/kengraf/chess-first10/issues" target="_blank" rel="noopener noreferrer">
+Request features or report issues here.
+</a>
+
 </div>
-<button class="splash-button" id="splash-button">Let's get started!</button>'
 </div>`
 
 const infoHTML = `<div class="splashCard">
-<button class="dismiss" id="dismiss">✕</button>
-<div class="title">
-	How to submit feature requests and report issues
-</div>
-<div class="splashText">
-Reporting a problem
-Cut& paste the log (most browsers) right-click anywhere on the page → Inspect → click the Console tab.  Or use keyboard shortcuts:
+	<button class="dismiss" id="dismiss">✕</button>
+	<div class="title">
+	Ask for new features
+	</div>
+	<div class="splashText">
+		<div> This is done by submitting an issue to our Github repository.
+		</div>
+	<a class="button" href="https://github.com/kengraf/chess-first10/issues" target="_blank" rel="noopener noreferrer">
+		Request features
+	</a>
+	</div>
 
-F12
-Ctrl+Shift+J (Windows) — opens directly to Console
-Cmd+Option+J (Mac) — opens directly to Console
+	<div class="title">
+	Submit a bug or issue
+	</div>
+	<div class="splashText">
+	Same process as feature requests, but it is helpful to for you to cut&paste the browser log so the problem can be replicated.
+	<br>
+To cut & paste the log (most browsers).<br>
+<ul>
+<li>Right-click anywhere on the page → Inspect → click the Console tab.</li>
+<br>Or use keyboard shortcuts:
+<br>
+<li>F12</li>
+<li>Ctrl+Shift+J (Windows)</li>
+<li>Cmd+Option+J (Mac)</li>
+</ul>
 </div>
+<a class="button" href="https://github.com/kengraf/chess-first10/issues" target="_blank" rel="noopener noreferrer">
+	Report issue here.
+</a>
 </div>`
+
 // Catch all mistakes to stop user experience from freezing
 window.addEventListener('error', (e) => {
   console.error('Uncaught error:', e.message, `(${e.filename}:${e.lineno})`);

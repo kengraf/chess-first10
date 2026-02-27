@@ -42,11 +42,9 @@
         <hr>
 
         <div class="sb-bodyPart">
-          <label>Openings: </label>
-          <select id="opening-names-dropdown">
-            <option value="" disabled selected>-- Select opening --</option>
-          </select>
+          <div id="opening-names-menu"></div>
         </div>
+
         <div class="sb-bodyPart">
             <label for="ecoInput">ECO Code (A00-E99):</label>
             <input 
@@ -55,7 +53,7 @@
               id="ecoInput" 
               value="" 
               maxlength="3"
-              placeholder="Random"
+              placeholder="*"
             />
         </div> 
         <div class="sb-bodyPart">
@@ -194,8 +192,6 @@
             <tbody></tbody>
           </table>
         </div>
-        <hr>
-
       </div>
       <div id="sb-body-playing" class="container-sb-body">
           <div class="container-playAs white2play" id="white">
