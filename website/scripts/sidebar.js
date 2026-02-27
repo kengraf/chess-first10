@@ -279,9 +279,9 @@ function playMoves( moves) {
 function populateUserProfile() {
     // Hide login button, show image    
     const label = document.getElementById('menu-label');
-    label.text = _user.idInfo.given_name;
+    label.innerHTML = _user.idInfo.given_name;
     const img = document.getElementById('userAvatar');
-    let pic = _user["idInfo"]["picture"];
+    let pic = _user.idInfo.picture;
     img.src = pic;
     img.class = "userAvatar";
     img.alt = "Show personal history";

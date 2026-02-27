@@ -45,8 +45,11 @@ def handler(event, context):
         # Save new user
         if item is None:
             item = {}
+        if( ("sessions" not in item) or (len(item["sessions"]) == 0)):
             item["sessions"] = [{"blue":0, "green":0, "yellow":0, "red":0, "date":0}]
+        if("missed" not in item):
             item["missed"] = []
+        if("controls" not in item):
             item["controls"] = {
                 "preferColor": "random",
                 "minimumTurns": 1,
@@ -74,8 +77,9 @@ def handler(event, context):
             ExpressionAttributeValues=attr_values,
             ReturnValues='UPDATED_NEW'
         )
+        print(response)
 
-        # Eturn what is now in table
+        # Return what is now in table
         response = {
             "cookies": [
                 f"session={idinfo['session']}; Secure=true; SameSite=Lax; Path=/",

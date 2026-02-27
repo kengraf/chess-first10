@@ -61,7 +61,7 @@ export function openingActions() {
 	
 	if( showSplash ) {
 		showSplash = false;
-		if( _user.idInfo.sub == "" ) {
+		if( _globals.sessionCookie == "" ) {
 			// Show splash page, dismiss button recurses
 			showInfoWindow('hello');
 			return;
