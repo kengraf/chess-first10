@@ -85,5 +85,4 @@ export function checkSessionCookies() {
 
 	let c = cookies.split('; ').find(row => row.startsWith('user='));
 	if( c ) _globals.userCookie = c.split('=')[1];
-	console.log("COOKIE: "+_globals.userCookie)
 }
