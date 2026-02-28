@@ -76,9 +76,9 @@ export async function openingActions() {
 			Auth.login();
 		} else {
 			if( Auth.isLocalhost() == false ) {
-				const data = await fetchJSON('/v1/databaseItems');
+				let data = await fetchJSON('/v1/databaseItems');
 				console.log(data);
-				_user = data;
+				Sidebar._user = data;
 			}
 		}
 	}
