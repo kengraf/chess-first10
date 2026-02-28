@@ -57,7 +57,7 @@ function init() {
 // ------- Manage the initial user actions --------
 let showSplash = true;
 let showSignin = true;
-export async function openingActions() {
+export function openingActions() {
 	
 	if( showSplash ) {
 		showSplash = false;
@@ -76,9 +76,8 @@ export async function openingActions() {
 			Auth.login();
 		} else {
 			if( Auth.isLocalhost() == false ) {
-				let data = await fetchJSON('/v1/databaseItems');
-				console.log(data);
-				Sidebar._user = data;
+				_user = fetchJSON('/v1/databaseItems');
+				console.log(_user);
 			}
 		}
 	}
