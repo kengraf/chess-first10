@@ -62,7 +62,7 @@ export function toggleUserState() {
     const el = document.getElementById('menu-toggleLogin');
     if( hasAuth ) {
         // Go back to baseUser values
-        setUser();
+//TBD fix logout cookies        setUser();
         el.textContent = "Sign in";
      } else {
         el.textContent = "Sign out";
