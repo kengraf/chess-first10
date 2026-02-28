@@ -57,7 +57,7 @@ function init() {
 // ------- Manage the initial user actions --------
 let showSplash = true;
 let showSignin = true;
-export function openingActions() {
+export async function openingActions() {
 	
 	if( showSplash ) {
 		showSplash = false;
@@ -72,13 +72,27 @@ export function openingActions() {
 	
 	if( showSignin ) {
 		showSignin = false;
-		Auth.login();
+		if( _globals.userCookie == "" ) {
+			Auth.login();
+		} else {
+			if( Auth.isLocalhost() == false ) {
+				const data = await fetchJSON('/v1/databaseItems');
+				console.log(data);
+				_user = data;
+			}
+		}
 	}
 
 	// Show the game controls
 	// Generate sidebar and UI elements
 	Sidebar.init('container-sb');
 	Sidebar.show("container-sb-body","sb-body-settings","flex");
+}
+
+async function fetchJSON(url) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  return response.json();
 }
 
 export function showInfoWindow(target) {

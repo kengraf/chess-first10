@@ -71,7 +71,7 @@ export function toggleUserState() {
 }
 
 let saveIsQueued = false;
-export function userSave(delay = 5*60*1000) {
+export function userSave(delay = 1*60*1000) {
     if( saveIsQueued ) {
         return;
     }
