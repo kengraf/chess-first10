@@ -27,7 +27,6 @@ export function login() {
 
 export function anonymous() {
 	if( isLocalhost() ) return true;
-	if( _user == baseUser ) return true;
 	if( _globals.userCookie == "") return true;
 
 	let data = fetchJSON('/v1/databaseItems');
