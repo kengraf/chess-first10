@@ -33,6 +33,7 @@ updates.
 */
 _globals.userCookie = "";
 _globals.sessionCookie = "";
+_hlobals.isAuthenticated = false;
 
 // ---------- Code to run the game -------------
 function init() {
@@ -61,7 +62,7 @@ export function openingActions() {
 	
 	if( showSplash ) {
 		showSplash = false;
-		if( _globals.userCookie == "" ) {
+		if( Auth.anonymous() ) {
 			// Show splash page, dismiss button recurses
 			showInfoWindow('hello');
 			return;
@@ -72,14 +73,8 @@ export function openingActions() {
 	
 	if( showSignin ) {
 		showSignin = false;
-		if( _globals.userCookie == "" ) {
+		if( Auth.anonymous() ) {
 			Auth.login();
-		} else {
-			if( Auth.isLocalhost() == false ) {
-				let data = fetchJSON('/v1/databaseItems');
-				console.log(data);
-				Sidebar.setUser(data);
-			}
 		}
 	}
 
@@ -91,7 +86,11 @@ export function openingActions() {
 
 async function fetchJSON(url) {
   const response = await fetch(url);
-  if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  if (!response.ok) {
+	console.log(`HTTP ${url} ${response.status}: ${response.statusText}`);
+	return null;
+  }
+  const data = await response.json();
   return response.json();
 }
 

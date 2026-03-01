@@ -25,6 +25,16 @@ export function login() {
 	google.accounts.id.prompt(); 
 }
 
+export function anonymous() {
+	if( isLocalhost() ) return true;
+	if( _user == baseUser ) return true;
+	if( _globals.userCookie == "") return true;
+
+	let data = fetchJSON('/v1/databaseItems');
+	console.log(data);
+	if( data == null ) data = baseUser;
+	Sidebar.setUser(data);
+}
 /*
 -------- Allow for faking the backend calls --------
 python server used for test can't handle posts, queries

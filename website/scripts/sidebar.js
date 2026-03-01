@@ -58,21 +58,22 @@ export function controlSet(control, value) {
 }
 
 export function toggleUserState() {
-    const hasAuth = _globals.isAuthenicated;
+    const loggedIn = _globals.isAuthenticated;
+    _globals.isAuthenticated = !loggedIn;
     const el = document.getElementById('menu-toggleLogin');
-    if( hasAuth ) {
-        // Go back to baseUser values
-//TBD fix logout cookies        setUser();
-        el.textContent = "Sign in";
+    el.textContent = "Sign " +(logginIn)?"in":"out";
+    if( loggedIn ) {
+        // Logout and go back to baseUser values
+        userSave(0);
+        setUser();
      } else {
-        el.textContent = "Sign out";
+        Auth.login()
      }
-    _globals.isAuthenicated = !hasAuth;
 }
 
 let saveIsQueued = false;
 export function userSave(delay = 1*60*1000) {
-    if( saveIsQueued ) {
+    if( saveIsQueued && delay != 0) {
         return;
     }
     saveIsQueued = true;
@@ -362,9 +363,9 @@ ctlr.addEventListener('click', () => {
 });
 
 ctlr = document.getElementById('toggleArrows');
-ctlr.checked = controlGet("showArrows");
+ctlr.checked = controlGet("showBestArrow");
 ctlr.addEventListener('click', () => {
-    controlSet("showArrows", !controlGet("showArrows"));
+    controlSet("showBestArrow", !controlGet("showBestArrow"));
 });
 
 

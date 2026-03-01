@@ -8,8 +8,6 @@ let chess = new Chess();
 
 export function playMove(notation,isUserMove) {
     if( notation == null ) return;
-    
-    _globals.userMove = isUserMove;
 
     _currentMove = chess.move(notation);
     if( !_currentMove ) {
@@ -499,7 +497,7 @@ export function initializeBoard() {
                 let moveNotation = clickEvent(e);
                 if( _audioResult == null ) _audioResult = _audioMove;
                 try {
-                    if( _globals.playSounds )
+                    if( Sidebar.controlGet("playSounds") )
                         _audioResult.play();
                 } catch (error) {
                     console.error("Click event audio playback failed:", error);
@@ -528,7 +526,7 @@ export function initializeBoard() {
                 let moveNotation = dropEvent(e);
                 if( _audioResult == null ) _audioResult = _audioMove;
                 try {
-                    if( _globals.playSounds )
+                    if( Sidebar.controlGet("playSounds"))
                         _audioResult.play();
                 } catch (error) {
                      console.error("Drop event audio playback failed:", error);
@@ -555,7 +553,7 @@ function unhighlightSquare( square, className ) {
 }
 
 function highlightSquare( square, className ) {
-    if( _globals.showHighlights ) {
+    if( Sidebar.controlGet("showHighlights") ) {
         let child = document.createElement("div");
         child.className = "square "+className;
         square.appendChild(child);
