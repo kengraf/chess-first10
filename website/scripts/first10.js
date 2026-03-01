@@ -33,7 +33,7 @@ updates.
 */
 _globals.userCookie = "";
 _globals.sessionCookie = "";
-_hlobals.isAuthenticated = false;
+_globals.isAuthenticated = false;
 
 // ---------- Code to run the game -------------
 function init() {
