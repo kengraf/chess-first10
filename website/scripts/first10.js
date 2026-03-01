@@ -99,7 +99,7 @@ async function fetchJSON(url) {
 			console.log(`HTTP ${url} ${response.status}: ${response.statusText}`);
 		} else {
 			const data = await response.json();
-			setUser(data);
+			Auth.setUser(data);
 			declaredUser = _user.idInfo.given_name;
 		}
 	}
