@@ -84,16 +84,6 @@ export function openingActions() {
 	Sidebar.show("container-sb-body","sb-body-settings","flex");
 }
 
-async function fetchJSON(url) {
-  const response = await fetch(url);
-  if (!response.ok) {
-	console.log(`HTTP ${url} ${response.status}: ${response.statusText}`);
-	return null;
-  }
-  const data = await response.json();
-  return response.json();
-}
-
 export function showInfoWindow(target) {
 	const html = (target == 'hello') ? splashHTML : infoHTML;
 	const div = document.getElementById('splash');

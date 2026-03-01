@@ -34,6 +34,17 @@ export function anonymous() {
 	if( data == null ) data = baseUser;
 	Sidebar.setUser(data);
 }
+
+async function fetchJSON(url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+	console.log(`HTTP ${url} ${response.status}: ${response.statusText}`);
+	return null;
+  }
+  const data = await response.json();
+  return response.json();
+}
+
 /*
 -------- Allow for faking the backend calls --------
 python server used for test can't handle posts, queries
