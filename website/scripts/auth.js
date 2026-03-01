@@ -42,7 +42,7 @@ async function fetchJSON(url) {
 	return null;
   }
   const data = await response.json();
-  return response.json();
+  return data;
 }
 
 /*
