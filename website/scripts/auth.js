@@ -11,8 +11,8 @@ export function currentUsername() {
 export function login() {
 
 	if( isLocalhost() ) {
-		//  Fake OIDC for testing; retrieve local data
-		useLocalCredential();
+		// Use baseuser
+		Sidebar.setUser();
 		return;
 	}
 
@@ -25,52 +25,12 @@ export function login() {
 	google.accounts.id.prompt(); 
 }
 
-export function anonymous() {
-	if( isLocalhost() ) return true;
-	if( _globals.userCookie == "") return true;
-
-	let data = fetchJSON('/v1/databaseItems');
-	console.log(data);
-	if( data == null ) data = baseUser;
-	Sidebar.setUser(data);
-}
-
-async function fetchJSON(url) {
-  const response = await fetch(url);
-  if (!response.ok) {
-	console.log(`HTTP ${url} ${response.status}: ${response.statusText}`);
-	return null;
-  }
-  const data = await response.json();
-  return data;
-}
-
 /*
 -------- Allow for faking the backend calls --------
 python server used for test can't handle posts, queries
 */
 export function isLocalhost(hostname = window.location.hostname) {
   return ['localhost', '127.0.0.1', '::1', ''].includes(hostname);
-}
-
-async function useLocalCredential() {
-	try {
-		const response = await fetch('/v1/verifyToken');
-	
-		if (!response.ok) {
-			throw new Error(`HTTP error! status: ${response.status}`);
-		}
-		
-		let text = await response.text();
-		_user = JSON.parse(text).body;
-		_user['sub'] = _globals.userCookie;
-		// Add a new asession, in reverse cronological order
-		if( !length(_user.sessions) || _user.sessions[0] == newSession)
-			_user.sessions.unshift(newSession);
-	
-	} catch (error) {
-		console.error(`Error fetching local credential: ${error}`);
-	}
 }
 
 function handleCredentialResponse(response) {

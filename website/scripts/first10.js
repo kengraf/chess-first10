@@ -58,23 +58,30 @@ function init() {
 // ------- Manage the initial user actions --------
 let showSplash = true;
 let showSignin = true;
+let declaredUser = null;
 export function openingActions() {
-	
+
+	if( declaredUser == null) {
+		// Set to either "anonymous" or given_name
+		fetchJSON('/v1/databaseItems');
+		return;
+	}
+
 	if( showSplash ) {
 		showSplash = false;
-		if( Auth.anonymous() ) {
-			// Show splash page, dismiss button recurses
-			showInfoWindow('hello');
-			return;
-		}
+		// Show splash page, dismiss button recurses
+		showInfoWindow('hello');
+		return;
 	}
 	// Dismiss the splash page if still visible
 	closeInfoWindow();
 	
 	if( showSignin ) {
 		showSignin = false;
-		if( Auth.anonymous() ) {
-			Auth.login();
+		if( declaredUser == "anonymous" ) {
+			if( ! isLocalhost() )
+				Auth.login();
+				return;
 		}
 	}
 
@@ -82,6 +89,20 @@ export function openingActions() {
 	// Generate sidebar and UI elements
 	Sidebar.init('container-sb');
 	Sidebar.show("container-sb-body","sb-body-settings","flex");
+}
+
+async function fetchJSON(url) {
+	declaredUser = "anonymous";
+	if( ! Auth.isLocalhost() ) {
+		const response = await fetch(url);
+		if (!response.ok) {
+			console.log(`HTTP ${url} ${response.status}: ${response.statusText}`);
+		} else {
+			const data = await response.json();
+			setUser(data);
+			declaredUser = _user.idInfo.given_name;
+		}
+	}
 }
 
 export function showInfoWindow(target) {
