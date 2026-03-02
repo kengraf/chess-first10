@@ -103,6 +103,7 @@ async function fetchJSON(url) {
 			declaredUser = _user.idInfo.given_name;
 		}
 	}
+	openingActions();
 }
 
 export function showInfoWindow(target) {

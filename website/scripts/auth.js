@@ -58,6 +58,7 @@ function handleCredentialResponse(response) {
 	.catch(error => {
 		console.error('Error verifying token:', error);
 	});
+	openingActions();
 }
 
 export function checkSessionCookies() {
