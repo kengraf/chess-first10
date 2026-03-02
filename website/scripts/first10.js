@@ -79,9 +79,8 @@ export function openingActions() {
 	if( showSignin ) {
 		showSignin = false;
 		if( declaredUser == "anonymous" ) {
-			if( ! isLocalhost() )
-				Auth.login();
-				return;
+			Auth.login();
+			return;
 		}
 	}
 
