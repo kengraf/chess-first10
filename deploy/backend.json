@@ -56,6 +56,13 @@
                   "Resource": {
                     "Fn::GetAtt": ["DynamoDBTable", "Arn"]
                   }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "bedrock:InvokeModel"
+                  ],
+                  "Resource": "*"
                 }
               ]
             }
@@ -130,7 +137,30 @@
         }
       }
     },
-	
+		"ExplainerFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "FunctionName": {
+          "Fn::Join": ["", [{"Ref": "DeployName"}, "-Explainer"]]
+        },
+        "Handler": "explainer.handler",
+        "Runtime": "python3.14",
+        "Role": {
+          "Fn::GetAtt": ["LambdaExecutionRole", "Arn"]
+        },
+        "Code": {
+          "S3Bucket": {"Ref": "S3bucketName"},
+          "S3Key": "api/explainer.zip"
+        },
+        "MemorySize": 128,
+        "Timeout": 30,
+        "Environment": {
+          "Variables": {
+            "TABLE_NAME": {"Ref": "DynamoDBTable"}
+          }
+        }
+      }
+    },
     "HttpApi": {
       "Type": "AWS::ApiGatewayV2::Api",
       "Properties": {

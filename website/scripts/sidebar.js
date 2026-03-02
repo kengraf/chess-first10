@@ -77,10 +77,12 @@ export function userSave(delay = 1*60*1000) {
         return;
     }
     saveIsQueued = true;
-    _user.sessions[0]["date"] = Date.now();
+
     console.log(_user);
     if( Auth.isLocalhost() == false ) {
         setTimeout(async () => {
+        _user.sessions[0]["date"] = Date.now();
+        _user.sessions.unshift(newSession);
         const response = await fetch('/v1/databaseItems', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -577,7 +579,7 @@ function showTotalsBar(results, barId) {
     info:        () => First10.showInfoWindow('info'),
     newGame:     () => newGame(),
     clearMissed: () => { _user.missed = []; userSave(0); },
-    delHistory:  () => { _user.sessions.push(newSession); _user.missed = []; userSave(0); },
+    delHistory:  () => { _user.sessions = [newSession]; _user.missed = []; userSave(0); },
     save:        () => userSave(0),
     toggleLogin:  () => toggleUserState(),
 
