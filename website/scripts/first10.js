@@ -63,7 +63,7 @@ export function openingActions() {
 
 	if( declaredUser == null) {
 		// Set to either "anonymous" or given_name
-		fetchJSON('/v1/databaseItems');
+		fetchJSON('/api/databaseItems');
 		return;
 	}
 

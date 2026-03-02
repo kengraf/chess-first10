@@ -41,7 +41,7 @@
         "CachePolicyConfig": {
           "Name": "AllowSetCookieCachePolicy-first10",
           "Comment": "Policy to allow Set-Cookie headers by forwarding all cookies",
-          "DefaultTTL": 1,
+          "DefaultTTL": 0,
           "MaxTTL": 1,
           "MinTTL": 1,
           "ParametersInCacheKeyAndForwardedToOrigin": {
@@ -109,7 +109,7 @@
           },
           "CacheBehaviors": [
             {
-              "PathPattern": "/v1/*",
+              "PathPattern": "/api/*",
               "TargetOriginId": "ApiOrigin",
               "ViewerProtocolPolicy": "redirect-to-https",
               "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"],

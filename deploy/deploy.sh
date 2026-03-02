@@ -22,7 +22,7 @@ zips() {
     for i in "${arr[@]}"
     do
       zip $i.zip $i.py
-      aws s3 cp $i.zip s3://${S3BUCKET}/v1/
+      aws s3 cp $i.zip s3://${S3BUCKET}/api/
     done
     cd ..
 }

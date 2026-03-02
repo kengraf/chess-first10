@@ -37,7 +37,7 @@ function handleCredentialResponse(response) {
 	const idToken = response.credential;
 
 	// Send the token to your backend via POST ---- GET
-	fetch('https://chess-first10.kengraf.com/v1/verifyToken', {
+	fetch('https://chess-first10.kengraf.com/api/verifyToken', {
 	method: 'POST',
 	headers: {
 		'Content-Type': 'application/json',

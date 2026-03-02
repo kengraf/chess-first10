@@ -83,7 +83,7 @@ export function userSave(delay = 1*60*1000) {
         setTimeout(async () => {
         _user.sessions[0]["date"] = Date.now();
         _user.sessions.unshift(newSession);
-        const response = await fetch('/v1/databaseItems', {
+        const response = await fetch('/api/databaseItems', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(_user)
@@ -306,7 +306,7 @@ function populateUserProfile() {
 document.addEventListener('visibilitychange', function () {
     if (document.visibilityState == 'hidden')  {
         _user.sessions[0]["date"] = Date.now();
-        navigator.sendBeacon('/v1/databaseItems', JSON.stringify( _user ));
+        navigator.sendBeacon('/api/databaseItems', JSON.stringify( _user ));
     }
 });
 

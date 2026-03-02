@@ -98,9 +98,9 @@ if __name__ == "__main__":
 		print( str(e) )
 
 """  CLI examples
-curl https://chess-first10.kengraf.com/v1/databaseItems -b 'user=test'
+curl https://chess-first10.kengraf.com/api/databaseItems -b 'user=test'
 
-curl -X POST https://chess-first10.kengraf.com/v1/databaseItems \
+curl -X POST https://chess-first10.kengraf.com/api/databaseItems \
      -H 'Content-Type: application/json' -b 'user=test' \
      -d '{ "controls": {"preferColor": "random","minimumTurns": 1,"maximumTurns": 10,"ecoCode": "","showBestArrow": false,"playSounds": true,"replay": "never","showHighlights": true,"theme": "classic","animation": false}, "idInfo": {"picture": "/images/login.png"},"sessions": [{"blue": 7,"green": 2,"yellow": 1,"red": 3,"date": 1771468093926}],"missed": ["1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 "] }'
 """
