@@ -18,7 +18,7 @@ zips() {
     fi
     cp google-package.zip verifyToken.zip
     
-    declare -a arr=("databaseItems" "verifyToken")
+    declare -a arr=("databaseItems" "verifyToken" "explainer")
     for i in "${arr[@]}"
     do
       zip $i.zip $i.py
