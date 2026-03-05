@@ -108,7 +108,7 @@ export function recordResult(notation){
 
 function explainMove( mode ) {
     const pgn = _globals.PGN;
-    const url = "https://www.google.com/search?q=explain why move ";
+    const url = "https://claude.ai/new?q=explain why move ";
     let move = "";
     let modifier = "";
     if( mode == "best" ) {
@@ -265,6 +265,7 @@ export function newGame() {
 //TBD TESTING: moves = ['e4', ... ];
 // castle,promote,enpassant tests
 // moves=['e3','a5','Nf3','b5','Be2','c5','O-O','a4','b4','axb3','h3','bxa2','h4','axb1=r'];
+moves=['d4','Nf6','Bf4','d5','e3','c5','c3','Nc6','Nf3','Qb6','Qb3','c4','Qc2','Bf5']
     playMoves(moves);
 }
 
