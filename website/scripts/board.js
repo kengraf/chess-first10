@@ -107,7 +107,9 @@ function clickEvent(e) {
     _audioResult = null;
     if( _activePiece ) {
         // Second click is an attempted or aborted move
-        return validateMove(e.currentTarget);
+        let move = validateMove(e.currentTarget);
+        if( move == null ) clickEvent(e);
+        return move;
     } else {
         // set the startSquare
         if( isSquareOccupied(e.currentTarget) ) {
@@ -142,6 +144,7 @@ function validateMove(node) {
             return p.san;
         }
     _audioResult = _audioIllegal;
+    resetClickDrag();
     return null;
 }
 
@@ -495,6 +498,7 @@ export function initializeBoard() {
             // Make squares clickable
             child.addEventListener("click", (e) => {
                 let moveNotation = clickEvent(e);
+                if( moveNotation == null ) return;
                 if( _audioResult == null ) _audioResult = _audioMove;
                 try {
                     if( Sidebar.controlGet("playSounds") )

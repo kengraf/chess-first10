@@ -80,7 +80,6 @@ export function openingActions() {
 		showSignin = false;
 		if( declaredUser == "anonymous" ) {
 			Auth.login();
-			return;
 		}
 	}
 
