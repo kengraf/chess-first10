@@ -247,7 +247,7 @@
       "Properties": {
         "ApiId": { "Ref": "HttpApi" },
 		"AutoDeploy": true,
-        "StageName": "v1",
+        "StageName": "api",
         "Description": "Production stage"
       }
     }
@@ -260,7 +260,7 @@
     "ApiGatewayInvokeUrl": {
       "Description": "Invoke URL for the API Gateway stage",
       "Export" : { "Name" : {"Fn::Join": ["-", [{"Ref" : "DeployName"}, "Gateway", "URL" ]]}},
-      "Value": { "Fn::Sub": "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/v1" }
+      "Value": { "Fn::Sub": "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/api" }
     }
   }
 }
