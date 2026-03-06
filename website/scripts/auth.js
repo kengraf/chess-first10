@@ -1,7 +1,7 @@
 import { _globals } from './first10.js';
 import { _user } from './sidebar.js';
 import * as Sidebar from './sidebar.js'
-import * as First10 from './first.js'
+import * as First10 from './first10.js'
 
 const CLIENT_ID = "1030435771551-qnikf54b4jhlbdmm4bkhst0io28u11s4.apps.googleusercontent.com";
 
