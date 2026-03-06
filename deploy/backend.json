@@ -141,9 +141,7 @@
     "HttpApi": {
       "Type": "AWS::ApiGatewayV2::Api",
       "Properties": {
-        "Name": {
-          "Fn::Join": ["", [{"Ref": "DeployName"}, "VerifyToken"]]
-        },
+        "Name": {"Ref": "DeployName"},
         "ProtocolType": "HTTP"
       }
     },
