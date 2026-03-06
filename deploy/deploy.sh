@@ -53,7 +53,11 @@ website() {
 invalidation() {
     FRONT_ID=`aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[?contains(DomainName, 'chess-first10.s3.us-east-2.amazonaws.com')]].Id" --output=text`
     if [ $FRONT_ID ]; then
-        aws cloudfront create-invalidation --distribution-id ${FRONT_ID} --paths "/*"
+        V_ID=`aws cloudfront create-invalidation --distribution-id ${FRONT_ID} --paths "/*" \
+		--query "Invalidation.Id" --output=text`
+	echo "waiting"
+	aws cloudfront wait invalidation-completed --distribution-id ${FRONT_ID} --id ${V_ID}.
+	echo "done"
     fi
 }
 
