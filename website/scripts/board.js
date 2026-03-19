@@ -379,7 +379,13 @@ function drawCurrentMove() {  // Update the UI
 
 function pieceDelete(square) {
     const container = document.getElementById(square);
-    if( container ) container.replaceChildren();
+    if( container ) {
+        container.querySelectorAll("img").forEach(img => img.remove());
+//        const note = container.innerHTML;
+ //       container.replaceChildren();
+//tbd        container.innerHTML = note;
+    }
+
 }
 
 function pieceImageAdd( piece, square) {
@@ -486,13 +492,23 @@ export function initializeBoard() {
             child.id=`${gridFiles[file]}${gridRanks[rank]}`;
             let sqName = Sidebar.controlGet("theme");
             sqName += ((rank+file)%2 == 0 ) ? "/darkSquare" : "/lightSquare";
-            if(file == 0)sqName += `${gridRanks[rank]}`;
-            if(rank == 0)sqName += `${gridFiles[file]}`;
-            img = `url('./images/${sqName}.png')`;
-           
-            child.style.background = img;
+            child.style.background = `url('./images/${sqName}.png')`;
             child.style.backgroundSize = "cover";
             container.appendChild(child);
+
+            const lColor = ((rank+file)%2 == 0 ) ? "dark" : "light";
+ 
+            // alpha notation
+            if (rank == 0) {
+                child.innerHTML = `<div class="notation alpha ${lColor}">` + `${gridFiles[file]}` + '</div>';
+            }
+            // numeric notation
+            if (file == 0) {
+                child.innerHTML += `<div class="notation numeric ${lColor}">` + `${gridRanks[rank]}` + '</div>';
+            }
+
+     
+
         
 
             // Make squares clickable

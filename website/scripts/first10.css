@@ -1061,3 +1061,27 @@ a.button:active { background-color: var(--active) }
   .dropdown.open .dropdown-menu > *:nth-child(3) { transition-delay: 0.13s; opacity: 1; transform: none; }
   .dropdown.open .dropdown-menu > *:nth-child(4) { transition-delay: 0.17s; opacity: 1; transform: none; }
   .dropdown.open .dropdown-menu > *:nth-child(5) { transition-delay: 0.21s; opacity: 1; transform: none; }
+
+  
+.notation {
+  cursor: default;
+  font-family: roboto;
+  font-size: 14px;
+  position: absolute;
+}
+
+.notation.light {
+  color: black;
+}
+.notation.dark {
+  color: white;
+}
+.notation.alpha {
+  bottom: 1px;
+  right: 3px;
+}
+.notation.numeric {
+  top: 2px;
+  left: 2px;
+}
+

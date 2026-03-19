@@ -11,9 +11,10 @@ export function currentUsername() {
 
 export function login() {
 
+	// Default to anonymous baseuser
+	Sidebar.setUser();
+
 	if( isLocalhost() ) {
-		// Use baseuser
-		Sidebar.setUser();
 		return;
 	}
 
@@ -24,6 +25,18 @@ export function login() {
 		use_fedcm_for_prompt: true,
 	});
 	google.accounts.id.prompt(); 
+}
+
+export function logout() {
+  // 1. Clear your app session (VERY IMPORTANT)
+  localStorage.clear();
+  sessionStorage.clear();
+
+  // Tell Google not to auto sign-in again
+  google.accounts.id.disableAutoSelect();
+
+  // 3. (Optional) redirect to login page
+  window.location.href = "/login";
 }
 
 /*
