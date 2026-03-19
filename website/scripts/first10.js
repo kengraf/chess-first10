@@ -97,7 +97,7 @@ async function fetchJSON(url) {
 			console.log(`HTTP ${url} ${response.status}: ${response.statusText}`);
 		} else {
 			const data = await response.json();
-			Auth.setUser(data);
+			Sidebar.setUser(data);
 			declaredUser = _user.idInfo.given_name;
 		}
 	}
