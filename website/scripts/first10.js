@@ -61,12 +61,12 @@ let showSignin = true;
 let declaredUser = null;
 export function openingActions() {
 
-	if( declaredUser == null) {
+/*	if( declaredUser == null) {
 		// Set to either "anonymous" or given_name
 		fetchJSON('/api/databaseItems');
 		return;
 	}
-
+*/
 	if( showSplash ) {
 		showSplash = false;
 		// Show splash page, dismiss button recurses
