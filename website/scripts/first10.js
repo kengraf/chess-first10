@@ -78,7 +78,7 @@ export function openingActions() {
 	
 	if( showSignin ) {
 		showSignin = false;
-		if( declaredUser == "anonymous" ) {
+		if( declaredUser == "Anonymous" ) {
 			Auth.login();
 		}
 	}
@@ -90,7 +90,7 @@ export function openingActions() {
 }
 
 async function fetchJSON(url) {
-	declaredUser = "anonymous";
+	declaredUser = "Anonymous";
 	if( ! Auth.isLocalhost() ) {
 		const response = await fetch(url);
 		if (!response.ok) {
