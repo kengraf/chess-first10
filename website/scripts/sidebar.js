@@ -61,7 +61,7 @@ export function toggleUserState() {
     const loggedIn = _globals.isAuthenticated;
     _globals.isAuthenticated = !loggedIn;
     const el = document.getElementById('menu-toggleLogin');
-    el.textContent = "Sign " +(logginIn)?"in":"out";
+    el.textContent = "Sign " +(loggedIn)?"in":"out";
     if( loggedIn ) {
         // Logout and go back to baseUser values
         userSave(0);
