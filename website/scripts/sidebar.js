@@ -42,6 +42,7 @@ export function setUser(data = baseUser) {
     if( ! data.hasOwnProperty("controls") ) 
         data['controls'] = baseUser.controls;
     _user = data;
+	_globals.declaredUser = _user.idInfo.given_name;
     populateUserProfile();
 }
 

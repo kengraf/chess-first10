@@ -34,6 +34,7 @@ updates.
 _globals.userCookie = null;
 _globals.sessionCookie = "";
 _globals.isAuthenticated = false;
+_globals.declaredUser = null;
 
 // ---------- Code to run the game -------------
 function init() {
@@ -58,20 +59,20 @@ function init() {
 // ------- Manage the initial user actions --------
 let showSplash = true;
 let showSignin = true;
-let declaredUser = null;
+
 export function openingActions() {
 
-	if(declaredUser == null) {
+	if(_globals.declaredUser == null) {
 		if(_globals.userCookie != null) {
 			// Set to either "Anonymous" or given_name
 			fetchJSON('/api/databaseItems');
 		} else {
-			declaredUser = "Anonymous";
+			_globals.declaredUser = "Anonymous";
 		}
 		return;
 	}
 
-	if( showSplash  && (declaredUser == "Anonymous")) {
+	if( showSplash  && (_globals.declaredUser == "Anonymous")) {
 		showSplash = false;
 		// Show splash page, dismiss button recurses
 		showInfoWindow('hello');
@@ -82,7 +83,7 @@ export function openingActions() {
 	
 	if( showSignin ) {
 		showSignin = false;
-		if( declaredUser == "Anonymous" ) {
+		if( _globals.declaredUser == "Anonymous" ) {
 			Auth.login();
 		}
 	}
@@ -94,7 +95,7 @@ export function openingActions() {
 }
 
 async function fetchJSON(url) {
-	declaredUser = "Anonymous";
+	_globals.declaredUser = "Anonymous";
 	if( ! Auth.isLocalhost() ) {
 		const response = await fetch(url);
 		if (!response.ok) {
@@ -102,7 +103,7 @@ async function fetchJSON(url) {
 		} else {
 			const data = await response.json();
 			Sidebar.setUser(data);
-			declaredUser = _user.idInfo.given_name;
+			_globals.isAuthenticated = true;
 		}
 	}
 	openingActions();
