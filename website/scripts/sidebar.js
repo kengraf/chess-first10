@@ -533,7 +533,8 @@ function showTotalsBar(results, barId) {
       { label: 'Save session',   action: 'save' },
     ],
     footerItems: [
-      { label: 'Sign in',       action: 'toggleLogin', variant: 'danger' },
+      { label: 'Sign '+(_globals.declaredUser=="Anonymous"?"in":"out"),
+                                action: 'toggleLogin', variant: 'danger' },
         ],
   };
 
