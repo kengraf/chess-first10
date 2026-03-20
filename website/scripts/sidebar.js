@@ -43,6 +43,7 @@ export function setUser(data = baseUser) {
         data['controls'] = baseUser.controls;
     _user = data;
 	_globals.declaredUser = _user.idInfo.given_name;
+    _globals.isAuthenticated = (_globals.declaredUser != "Anonymous");
     populateUserProfile();
 }
 
