@@ -68,11 +68,11 @@ function handleCredentialResponse(response) {
 		console.log('Data fetched:', data);
 		_globals.userCookie = data["sub"];
 		Sidebar.setUser(data);
+		First10.openingActions();
 	})
 	.catch(error => {
 		console.error('Error verifying token:', error);
 	});
-	First10.openingActions();
 }
 
 export function checkSessionCookies() {

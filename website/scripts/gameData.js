@@ -74,7 +74,7 @@ function randomGame(steps) {
 	_globals.steps = [];
 	_globals.PGN = "";
 	_globals.nextNode = 0;
-	let iNode = 0;
+	iNode = 0;
 	let move = 1;
 	let ecoMoves = _globals.ecoMoves;
 	
@@ -157,6 +157,7 @@ export async function processNodesURL(url) {
 		const lines = content.trim().split('\n');
 		
 		// Reset NODES for fresh processing
+		iNode = 0;
 		NODES = [];
 		
 		for (const line of lines) {

@@ -108,7 +108,6 @@ function clickEvent(e) {
     if( _activePiece ) {
         // Second click is an attempted or aborted move
         let move = validateMove(e.currentTarget);
-        if( move == null ) clickEvent(e);
         return move;
     } else {
         // set the startSquare
@@ -435,10 +434,7 @@ function resizeBoard() {
     const container = document.querySelector('.container');
     const containerRect = container.getBoundingClientRect();
 
-    let sidebarWidth = 0;
-    if (window.innerWidth > 768) {
-        sidebarWidth = sidebar.classList.contains('collapsed') ? 50 : 300;
-    }
+    let sidebarWidth = 300;
     
     const bwidth = containerRect.width - sidebarWidth;
     const bheight = window.innerHeight;

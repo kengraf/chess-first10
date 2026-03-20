@@ -38,7 +38,6 @@ export function init() {
     show("container-sb-body","sb-body-settings","flex");
  }
 
-let gamesPlayed = 0;
 export function setUser(data = baseUser) {
     if( ! data.hasOwnProperty("controls") ) 
         data['controls'] = baseUser.controls;
@@ -61,7 +60,7 @@ export function toggleUserState() {
     const loggedIn = _globals.isAuthenticated;
     _globals.isAuthenticated = !loggedIn;
     const el = document.getElementById('menu-toggleLogin');
-    el.textContent = "Sign " +(loggedIn)?"in":"out";
+    el.textContent = "Sign " +(loggedIn?"in":"out");
     if( loggedIn ) {
         // Logout and go back to baseUser values
         userSave(0);
@@ -82,7 +81,7 @@ export function userSave(delay = 1*60*1000) {
     if( Auth.isLocalhost() == false ) {
         setTimeout(async () => {
         _user.sessions[0]["date"] = Date.now();
-        _user.sessions.unshift(newSession);
+        _user.sessions.unshift({...newSession});
         const response = await fetch('/api/databaseItems', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -121,11 +120,6 @@ function explainMove( mode ) {
     window.open( url+move+modifier+pgn, '_blank' );
 }
 
-
-function addToSession(grade, pgn) {
-    updateSidebarSession(grade);
-}
-
 function getSessionCount(session) {
     let cnt = 0;
     const color = ["blue", "green","yellow","red"];
@@ -162,7 +156,7 @@ function setResultsTable(notation) {
     const data = _globals.peekSteps;
     let gradeId = "red";
     let bestPercent = 0;
-    gamesPlayed = data.reduce((sum, item) => sum + item.Count, 0);
+    let gamesPlayed = data.reduce((sum, item) => sum + item.Count, 0);
 
     data.forEach(item => {
       item.Checked = item.Move == notation ? "&#x2705;" : "";
@@ -210,17 +204,17 @@ function setResultsTable(notation) {
      if( _globals.bestMove == notation) {
         triggerFireworks();
     } else if( controlGet("showBestArrow") ) {
-        const moves = _globals.PGN
+/*TBD unused        const moves = _globals.PGN
             .trim()
             .replace(/[.]/g, ' ')
             .split(/\s+/)
             .filter(item => {
                 return item && !/^\d+$/.test(item);
             });
-
+*/
         Board.createArrow();
     }
-    console.log('move: ${_globals.yourMove} grade:${gradeId} PGN:${_globals.PGN}');
+    console.log(`move: ${_globals.yourMove} grade:${gradeId} PGN:${_globals.PGN}`);
     return gradeId;
 }
 
@@ -288,17 +282,9 @@ function populateUserProfile() {
     const img = document.getElementById('userAvatar');
     let pic = _user.idInfo.picture;
     img.src = pic;
-    img.class = "userAvatar";
+    img.className = "avatar";
     img.alt = "Show personal history";
-   
-    img.addEventListener('load', () => {
-        console.log('Image loaded successfully');
-    });
-
-    img.addEventListener('error', (e) => {
-        console.error('Image failed to load:', img.src, e);
-    });
-    
+ 
     img.addEventListener("click", () => {
         show("container-sb-body","sb-body-history","flex");
     });
@@ -312,7 +298,8 @@ document.addEventListener('visibilitychange', function () {
     }
 });
 
-document.getElementById('ecoInput').addEventListener('input', () => { setCurrentEcoCode(event.target.value); });
+document.getElementById('ecoInput').addEventListener('input', (event) => {
+    setCurrentEcoCode(event.target.value); });
   
 document.getElementById('select-white').addEventListener('click', () => {
     pickColor('white');
@@ -335,11 +322,6 @@ document.getElementById('yourMove').addEventListener('click', () => {
 document.getElementById('copyPGN-btn').addEventListener('click', () => {
     copyPGN();
 });
-
-document.getElementById('select-white').addEventListener('click', () => {
-    pickColor('white');
-});
-
 
 const buttons = document.querySelectorAll('.replay-button');
 buttons.forEach(button => {
@@ -471,7 +453,7 @@ async function loadEcoOpenings() {
 }
 
 function setCurrentEcoCode(code) {
-    code.toUpperCase()
+    code = code.toUpperCase()
     const pattern = /^[A-E]\d{2}$/;
     
     _globals.ecoMoves = [];
@@ -585,7 +567,8 @@ function showTotalsBar(results, barId) {
     save:        () => userSave(0),
     toggleLogin:  () => toggleUserState(),
 
-    openALL:    () => setCurrentEcoCode("B10"),
+    openALL:    () => setCurrentEcoCode("*"),
+    openB10:    () => setCurrentEcoCode("B10"),
     openE00:    () => setCurrentEcoCode("E00"),
     openC30:    () => setCurrentEcoCode("C30"),
     openA45:    () => setCurrentEcoCode("A45"),
@@ -669,7 +652,7 @@ function showTotalsBar(results, barId) {
     const wrapper = document.createElement('div');
     wrapper.className = 'dropdown';
     wrapper.id = 'dd';
-    wrapper.height = config.height;
+    wrapper.style.height = config.height;
 
     const trigger = buildTrigger(config.trigger);
     const menu = buildMenu(config);

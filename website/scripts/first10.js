@@ -31,7 +31,7 @@ authentication.  These users are anonymous with no history.
 Both are stored in the history database to authorize
 updates.
 */
-_globals.userCookie = "";
+_globals.userCookie = null;
 _globals.sessionCookie = "";
 _globals.isAuthenticated = false;
 
@@ -61,12 +61,12 @@ let showSignin = true;
 let declaredUser = null;
 export function openingActions() {
 
-/*	if( declaredUser == null) {
-		// Set to either "anonymous" or given_name
+	if( (declaredUser == null) && (_globals.userCookie != null)) {
+		// Set to either "Anonymous" or given_name
 		fetchJSON('/api/databaseItems');
 		return;
 	}
-*/
+
 	if( showSplash ) {
 		showSplash = false;
 		// Show splash page, dismiss button recurses
@@ -128,7 +128,7 @@ function readParameters() {
 	const urlParams = new URLSearchParams(queryString);
 	
 	let s = "";
-	if( s = urlParams.get('cookies') ) {
+	if( s == urlParams.get('cookies') ) {
 		// Over-riding the actual cookies
 		const cookies = s.split(";");
 		for(const c of cookies) {
