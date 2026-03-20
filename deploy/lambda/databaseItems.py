@@ -34,7 +34,8 @@ def handle_post(event, sub):
 		data = event["body"]
 		if isinstance(data, str):
 			data = json.loads(data)
-			del data['sub']
+			if('sub' in data):
+				del data['sub']
 		print("Received body:", json.dumps(data))
 
 		update_expr = "SET " + ", ".join(f"#{k} = :{k}" for k in data)

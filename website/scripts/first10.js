@@ -33,7 +33,6 @@ updates.
 */
 _globals.userCookie = null;
 _globals.sessionCookie = "";
-_globals.isAuthenticated = false;
 _globals.declaredUser = null;
 
 // ---------- Code to run the game -------------
@@ -103,7 +102,6 @@ async function fetchJSON(url) {
 		} else {
 			const data = await response.json();
 			Sidebar.setUser(data);
-			_globals.isAuthenticated = true;
 		}
 	}
 	openingActions();

@@ -43,7 +43,6 @@ export function setUser(data = baseUser) {
         data['controls'] = baseUser.controls;
     _user = data;
 	_globals.declaredUser = _user.idInfo.given_name;
-    _globals.isAuthenticated = (_globals.declaredUser != "Anonymous");
     populateUserProfile();
 }
 
@@ -59,8 +58,7 @@ export function controlSet(control, value) {
 }
 
 export function toggleUserState() {
-    const loggedIn = _globals.isAuthenticated;
-    _globals.isAuthenticated = !loggedIn;
+    const loggedIn = (_globals.declaredUser != "Anonumous");
     const el = document.getElementById('menu-toggleLogin');
     el.textContent = "Sign " +(loggedIn?"in":"out");
     if( loggedIn ) {
