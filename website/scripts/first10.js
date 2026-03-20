@@ -61,13 +61,17 @@ let showSignin = true;
 let declaredUser = null;
 export function openingActions() {
 
-	if( (declaredUser == null) && (_globals.userCookie != null)) {
-		// Set to either "Anonymous" or given_name
-		fetchJSON('/api/databaseItems');
+	if(declaredUser == null) {
+		if(_globals.userCookie != null) {
+			// Set to either "Anonymous" or given_name
+			fetchJSON('/api/databaseItems');
+		} else {
+			declaredUser = "Anonymous";
+		}
 		return;
 	}
 
-	if( showSplash ) {
+	if( showSplash  && (declaredUser == "Anonymous")) {
 		showSplash = false;
 		// Show splash page, dismiss button recurses
 		showInfoWindow('hello');
