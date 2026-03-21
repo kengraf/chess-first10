@@ -58,7 +58,7 @@ export function controlSet(control, value) {
 }
 
 export function toggleUserState() {
-    const loggedIn = (_globals.declaredUser != "Anonumous");
+    const loggedIn = (_globals.declaredUser != "Anonymous");
     const el = document.getElementById('menu-toggleLogin');
     el.textContent = "Sign " +(loggedIn?"in":"out");
     if( loggedIn ) {
@@ -533,8 +533,7 @@ function showTotalsBar(results, barId) {
       { label: 'Save session',   action: 'save' },
     ],
     footerItems: [
-      { label: 'Sign '+(_globals.declaredUser=="Anonymous"?"in":"out"),
-                                action: 'toggleLogin', variant: 'danger' },
+      { label: 'Sign in/out',   action: 'toggleLogin', variant: 'danger' },
         ],
   };
 
