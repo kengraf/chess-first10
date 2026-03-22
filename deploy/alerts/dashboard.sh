@@ -33,6 +33,7 @@ aws cloudwatch put-dashboard \
             ["AWS/Lambda", "Throttles","FunctionName", "chess-first10-DatabaseItems",    {"stat": "Sum",  "color": "#7f7f7f"}]
           ],
           "period": 300,
+          "region": "us-east-2",
           "view": "timeSeries",
           "width": 12, "height": 6
         }
@@ -48,6 +49,7 @@ aws cloudwatch put-dashboard \
             ["AWS/DynamoDB", "SuccessfulRequestLatency",   "TableName", "chess-first10", "Operation", "PutItem", {"stat": "p95", "yAxis": "right"}]
           ],
           "period": 300,
+          "region": "us-east-2",
           "view": "timeSeries",
           "width": 12, "height": 6
         }
@@ -63,6 +65,7 @@ aws cloudwatch put-dashboard \
             ["AWS/CloudFront", "CacheHitRate",  "DistributionId", "E11ZUO4X7QTOF0", "Region", "Global", {"stat": "Average", "yAxis": "right"}]
           ],
           "period": 300,
+          "region": "us-east-2",
           "view": "timeSeries",
           "width": 12, "height": 6
         }
