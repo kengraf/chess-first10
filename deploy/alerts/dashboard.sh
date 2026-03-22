@@ -17,8 +17,8 @@ aws cloudwatch put-dashboard \
           "region": "us-east-2",
           "view": "timeSeries",
           "stacked": false,
-          "width": 12, "height": 6
-        }
+        },
+        "width": 12, "height": 6
       },
       {
         "type": "metric",
@@ -35,8 +35,8 @@ aws cloudwatch put-dashboard \
           "period": 300,
           "region": "us-east-2",
           "view": "timeSeries",
-          "width": 12, "height": 6
-        }
+        },
+        "width": 12, "height": 6
       },
       {
         "type": "metric",
@@ -51,8 +51,8 @@ aws cloudwatch put-dashboard \
           "period": 300,
           "region": "us-east-2",
           "view": "timeSeries",
-          "width": 12, "height": 6
-        }
+        },
+        "width": 12, "height": 6
       },
       {
         "type": "metric",
@@ -67,8 +67,8 @@ aws cloudwatch put-dashboard \
           "period": 300,
           "region": "us-east-2",
           "view": "timeSeries",
-          "width": 12, "height": 6
-        }
+        },
+        "width": 12, "height": 6
       },
       {
         "type": "alarm",
@@ -82,8 +82,8 @@ aws cloudwatch put-dashboard \
             "arn:aws:cloudwatch:us-east-1:788715698479:alarm:first10-lambda-throttles",
             "arn:aws:cloudwatch:us-east-1:788715698479:alarm:first10-log-ingest"
           ],
-          "width": 24, "height": 4
-        }
+        },
+        "width": 12, "height": 6
       }
     ]
   }'
