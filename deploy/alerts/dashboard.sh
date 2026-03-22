@@ -42,7 +42,7 @@ aws cloudwatch put-dashboard \
       },
       {
         "type": "metric",
-        "x": 12, "y": 6,
+        "x": 12, "y": 0,
         "width": 6, "height": 6,
         "properties": {
           "title": "DynamoDB — reads, writes & errors",
@@ -59,7 +59,7 @@ aws cloudwatch put-dashboard \
       },
       {
         "type": "metric",
-        "x": 18, "y": 6,
+        "x": 18, "y": 0,
         "width": 6, "height": 6,
         "properties": {
           "title": "CloudFront — traffic & cache",
