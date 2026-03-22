@@ -14,6 +14,7 @@ aws cloudwatch put-dashboard \
             ["AWS/ApiGateway", "Latency",  "ApiName", "chess-frist10", "Stage", "prod", {"label": "p95 latency",    "stat": "p95",  "yAxis": "right"}]
           ],
           "period": 300,
+          "region": "us-east-2".
           "view": "timeSeries",
           "stacked": false,
           "width": 12, "height": 6
