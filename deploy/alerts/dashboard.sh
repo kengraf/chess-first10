@@ -6,14 +6,14 @@ aws cloudwatch put-dashboard \
       {
         "type": "metric",
         "x": 0, "y": 0,
-        "width": 12, "height": 6,
+        "width": 6, "height": 6,
         "properties": {
           "title": "API Gateway — requests & errors",
           "metrics": [
-            ["AWS/ApiGateway", "Count",    "ApiName", "chess-first10", "Stage", "prod", {"label": "Total requests", "stat": "Sum"}],
-            ["AWS/ApiGateway", "5XXError", "ApiName", "chess-first10", "Stage", "prod", {"label": "5xx errors",     "stat": "Sum", "color": "#d13212"}],
-            ["AWS/ApiGateway", "4XXError", "ApiName", "chess-first10", "Stage", "prod", {"label": "4xx errors",     "stat": "Sum", "color": "#ff9900"}],
-            ["AWS/ApiGateway", "Latency",  "ApiName", "chess-first10", "Stage", "prod", {"label": "p95 latency",    "stat": "p95",  "yAxis": "right"}]
+            ["AWS/ApiGateway", "Count",    "ApiName", "chess-first10", "Stage", "api", {"label": "Total requests", "stat": "Sum"}],
+            ["AWS/ApiGateway", "5XXError", "ApiName", "chess-first10", "Stage", "api", {"label": "5xx errors",     "stat": "Sum", "color": "#d13212"}],
+            ["AWS/ApiGateway", "4XXError", "ApiName", "chess-first10", "Stage", "api", {"label": "4xx errors",     "stat": "Sum", "color": "#ff9900"}],
+            ["AWS/ApiGateway", "Latency",  "ApiName", "chess-first10", "Stage", "api", {"label": "p95 latency",    "stat": "p95",  "yAxis": "right"}]
           ],
           "period": 300,
           "region": "us-east-2",
@@ -23,8 +23,8 @@ aws cloudwatch put-dashboard \
       },
       {
         "type": "metric",
-        "x": 12, "y": 0,
-        "width": 12, "height": 6,
+        "x": 6, "y": 0,
+        "width": 6, "height": 6,
         "properties": {
           "title": "Lambda — duration & errors",
           "metrics": [
@@ -42,8 +42,8 @@ aws cloudwatch put-dashboard \
       },
       {
         "type": "metric",
-        "x": 0, "y": 6,
-        "width": 12, "height": 6,
+        "x": 12, "y": 6,
+        "width": 6, "height": 6,
         "properties": {
           "title": "DynamoDB — reads, writes & errors",
           "metrics": [
@@ -59,8 +59,8 @@ aws cloudwatch put-dashboard \
       },
       {
         "type": "metric",
-        "x": 12, "y": 6,
-        "width": 12, "height": 6,
+        "x": 18, "y": 6,
+        "width": 6, "height": 6,
         "properties": {
           "title": "CloudFront — traffic & cache",
           "metrics": [
@@ -76,7 +76,7 @@ aws cloudwatch put-dashboard \
       },
       {
         "type": "alarm",
-        "x": 0, "y": 12,
+        "x": 0, "y": 6,
         "width": 24, "height": 4,
         "properties": {
           "title": "Alarm status",
