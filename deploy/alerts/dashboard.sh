@@ -75,12 +75,12 @@ aws cloudwatch put-dashboard \
         "properties": {
           "title": "Alarm status",
           "alarms": [
-            "arn:aws:cloudwatch:us-east-1:ACCOUNT_ID:alarm:first10-apigw-5xx-count",
-            "arn:aws:cloudwatch:us-east-1:ACCOUNT_ID:alarm:first10-apigw-5xx-rate",
-            "arn:aws:cloudwatch:us-east-1:ACCOUNT_ID:alarm:first10-verifyToken-errors",
-            "arn:aws:cloudwatch:us-east-1:ACCOUNT_ID:alarm:first10-dynamodb-system-errors",
-            "arn:aws:cloudwatch:us-east-1:ACCOUNT_ID:alarm:first10-lambda-throttles",
-            "arn:aws:cloudwatch:us-east-1:ACCOUNT_ID:alarm:first10-log-ingest"
+            "arn:aws:cloudwatch:us-east-1:788715698479:alarm:first10-apigw-5xx-count",
+            "arn:aws:cloudwatch:us-east-1:788715698479:alarm:first10-apigw-5xx-rate",
+            "arn:aws:cloudwatch:us-east-1:788715698479:alarm:first10-verifyToken-errors",
+            "arn:aws:cloudwatch:us-east-1:788715698479:alarm:first10-dynamodb-system-errors",
+            "arn:aws:cloudwatch:us-east-1:788715698479:alarm:first10-lambda-throttles",
+            "arn:aws:cloudwatch:us-east-1:788715698479:alarm:first10-log-ingest"
           ],
           "width": 24, "height": 4
         }
