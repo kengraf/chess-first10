@@ -10,10 +10,10 @@ aws cloudwatch put-dashboard \
         "properties": {
           "title": "API Gateway — requests & errors",
           "metrics": [
-            ["AWS/ApiGateway", "Count",    "ApiName", "chess-first10", "Stage", "api", {"label": "Total requests", "stat": "Sum"}],
-            ["AWS/ApiGateway", "5XXError", "ApiName", "chess-first10", "Stage", "api", {"label": "5xx errors",     "stat": "Sum", "color": "#d13212"}],
-            ["AWS/ApiGateway", "4XXError", "ApiName", "chess-first10", "Stage", "api", {"label": "4xx errors",     "stat": "Sum", "color": "#ff9900"}],
-            ["AWS/ApiGateway", "Latency",  "ApiName", "chess-first10", "Stage", "api", {"label": "p95 latency",    "stat": "p95",  "yAxis": "right"}]
+            ["AWS/ApiGateway", "Count",    "ApiId", "0v8ufryy8e", "Stage", "api", {"label": "Total requests", "stat": "Sum"}],
+            ["AWS/ApiGateway", "5XXError", "ApiId", "0v8ufryy8e", "Stage", "api", {"label": "5xx errors",     "stat": "Sum", "color": "#d13212"}],
+            ["AWS/ApiGateway", "4XXError", "ApiId", "0v8ufryy8e", "Stage", "api", {"label": "4xx errors",     "stat": "Sum", "color": "#ff9900"}],
+            ["AWS/ApiGateway", "Latency",  "ApiId", "0v8ufryy8e", "Stage", "api", {"label": "p95 latency",    "stat": "p95",  "yAxis": "right"}]
           ],
           "period": 300,
           "region": "us-east-2",
