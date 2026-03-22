@@ -5,6 +5,7 @@ aws cloudwatch put-dashboard \
     "widgets": [
       {
         "type": "metric",
+        "width": 12, "height": 6,
         "properties": {
           "title": "API Gateway — requests & errors",
           "metrics": [
@@ -17,11 +18,11 @@ aws cloudwatch put-dashboard \
           "region": "us-east-2",
           "view": "timeSeries",
           "stacked": false,
-        },
-        "width": 12, "height": 6
+        }
       },
       {
         "type": "metric",
+        "width": 12, "height": 6,
         "properties": {
           "title": "Lambda — duration & errors",
           "metrics": [
@@ -35,11 +36,11 @@ aws cloudwatch put-dashboard \
           "period": 300,
           "region": "us-east-2",
           "view": "timeSeries",
-        },
-        "width": 12, "height": 6
+        }
       },
       {
         "type": "metric",
+        "width": 12, "height": 6,
         "properties": {
           "title": "DynamoDB — reads, writes & errors",
           "metrics": [
@@ -51,8 +52,7 @@ aws cloudwatch put-dashboard \
           "period": 300,
           "region": "us-east-2",
           "view": "timeSeries",
-        },
-        "width": 12, "height": 6
+        }
       },
       {
         "type": "metric",
@@ -67,11 +67,11 @@ aws cloudwatch put-dashboard \
           "period": 300,
           "region": "us-east-2",
           "view": "timeSeries",
-        },
-        "width": 12, "height": 6
+        }
       },
       {
         "type": "alarm",
+        "width": 12, "height": 6,
         "properties": {
           "title": "Alarm status",
           "alarms": [
