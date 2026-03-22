@@ -1,6 +1,6 @@
 aws cloudwatch put-dashboard \
   --dashboard-name "first10-operations" \
-  --region us-east-1 \
+  --region us-east-2 \
   --dashboard-body '{
     "widgets": [
       {
