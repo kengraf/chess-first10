@@ -17,7 +17,7 @@ aws cloudwatch put-dashboard \
           "period": 300,
           "region": "us-east-2",
           "view": "timeSeries",
-          "stacked": false,
+          "stacked": false
         }
       },
       {
@@ -35,7 +35,7 @@ aws cloudwatch put-dashboard \
           ],
           "period": 300,
           "region": "us-east-2",
-          "view": "timeSeries",
+          "view": "timeSeries"
         }
       },
       {
@@ -51,7 +51,7 @@ aws cloudwatch put-dashboard \
           ],
           "period": 300,
           "region": "us-east-2",
-          "view": "timeSeries",
+          "view": "timeSeries"
         }
       },
       {
@@ -66,7 +66,7 @@ aws cloudwatch put-dashboard \
           ],
           "period": 300,
           "region": "us-east-2",
-          "view": "timeSeries",
+          "view": "timeSeries"
         }
       },
       {
@@ -81,9 +81,8 @@ aws cloudwatch put-dashboard \
             "arn:aws:cloudwatch:us-east-1:788715698479:alarm:first10-dynamodb-system-errors",
             "arn:aws:cloudwatch:us-east-1:788715698479:alarm:first10-lambda-throttles",
             "arn:aws:cloudwatch:us-east-1:788715698479:alarm:first10-log-ingest"
-          ],
-        },
-        "width": 12, "height": 6
+          ]
+        }
       }
     ]
   }'
