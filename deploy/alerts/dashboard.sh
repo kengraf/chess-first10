@@ -28,7 +28,7 @@ aws cloudwatch put-dashboard \
             ["AWS/Lambda", "Errors",   "FunctionName", "chess-first10-DatabaseItemss",  {"stat": "Sum",  "color": "#ff9900"}],
             ["AWS/Lambda", "Duration", "FunctionName", "chess-first10-VerifyToken",    {"stat": "p95",  "yAxis": "right"}],
             ["AWS/Lambda", "Duration", "FunctionName", "chess-first10-DatabaseItems",  {"stat": "p95",  "yAxis": "right"}],
-            ["AWS/Lambda", "Throttles","FunctionName", "chess-first10-VerifyToken",    {"stat": "Sum",  "color": "#7f7f7f"},
+            ["AWS/Lambda", "Throttles","FunctionName", "chess-first10-VerifyToken",    {"stat": "Sum",  "color": "#7f7f7f"}],
             ["AWS/Lambda", "Throttles","FunctionName", "chess-first10-DatabaseItems",    {"stat": "Sum",  "color": "#7f7f7f"}]
           ],
           "period": 300,
