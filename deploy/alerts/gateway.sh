@@ -1,6 +1,6 @@
 #!/bin/bash
 # Prerequisites: set these for your environment
-API_NAME="first10-api"
+API_NAME="chess-first10"
 STAGE="api"
 AWS_REGION="us-east-2"
 ALERT_EMAIL="kengraf57@gmail.com"
