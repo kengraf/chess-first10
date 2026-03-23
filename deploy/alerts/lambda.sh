@@ -1,7 +1,7 @@
 #!/bin/bash
 # ── Config ────────────────────────────────────────────────────────────────────
-FUNCTION_NAME="first10-verifyToken"
-AWS_REGION="us-east-1"
+FUNCTION_NAME="chess-first10-VerifyToken"
+AWS_REGION="us-east-2"
 TOPIC_ARN="arn:aws:sns:us-east-1:ACCOUNT_ID:first10-alerts-critical"
 
 # ── 1. Lambda errors (unhandled exceptions / timeouts / OOM) ─────────────────
