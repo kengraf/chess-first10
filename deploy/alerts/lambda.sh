@@ -3,7 +3,7 @@
 FUNCTION_NAME="chess-first10-VerifyToken"
 AWS_REGION="us-east-2"
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-TOPIC_ARN="arn:aws:sns:us-east-1:ACCOUNT_ID:first10-alerts-critical"
+TOPIC_ARN="arn:aws:sns:us-east-2:ACCOUNT_ID:first10-alerts-critical"
 
 # ── 1. Lambda errors (unhandled exceptions / timeouts / OOM) ─────────────────
 # These are infrastructure failures — the function crashed before returning
