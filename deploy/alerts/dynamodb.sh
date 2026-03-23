@@ -2,7 +2,7 @@
 # ── Config ────────────────────────────────────────────────────────────────────
 TABLE_NAME="chess-first10"
 AWS_REGION="us-east-2"
-
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 TOPIC_CRITICAL="arn:aws:sns:us-east-2:ACCOUNT_ID:first10-alerts-critical"
 TOPIC_HIGH="arn:aws:sns:us-east-2:ACCOUNT_ID:first10-alerts-high"
 FUNCTION_NAME_DB="first10-DatabaseItems"
