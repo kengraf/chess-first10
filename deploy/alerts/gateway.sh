@@ -1,9 +1,9 @@
 #!/bin/bash
 # Prerequisites: set these for your environment
 API_NAME="first10-api"
-STAGE="prod"
-AWS_REGION="us-east-1"
-ALERT_EMAIL="you@example.com"
+STAGE="api"
+AWS_REGION="us-east-2"
+ALERT_EMAIL="kengraf57@gmail.com"
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 API_ID=$(aws apigateway get-rest-apis \
   --query "items[?name=='${API_NAME}'].id" \
