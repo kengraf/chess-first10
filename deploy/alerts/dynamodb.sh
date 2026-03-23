@@ -5,7 +5,7 @@ AWS_REGION="us-east-2"
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 TOPIC_CRITICAL="arn:aws:sns:us-east-2:ACCOUNT_ID:first10-alerts-critical"
 TOPIC_HIGH="arn:aws:sns:us-east-2:ACCOUNT_ID:first10-alerts-high"
-FUNCTION_NAME_DB="first10-DatabaseItems"
+FUNCTION_NAME_DB="chess-first10-DatabaseItems"
 
 # ── 1. SystemErrors (AWS-side 5xx from DynamoDB) ──────────────────────────────
 # Internal AWS failures — not your code, not throttling. These are rare but
