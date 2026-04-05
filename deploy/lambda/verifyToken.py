@@ -55,7 +55,7 @@ def handler(event, context):
                 "minimumTurns": 1,
                 "maximumTurns": 10,
                 "ecoCode": "", ""
-                "showBestArrow": False,
+                "showBestArrow": true,
                 "playSounds": False,
                 "replay": "never",
                 "showHighlights": False,

@@ -13,7 +13,7 @@ baseUser.controls = {
         "minimumTurns": 1,
         "maximumTurns": 10,
         "ecoCode": "",
-        "showBestArrow": false,
+        "showBestArrow": true,
         "playSounds": false,
         "replay": "never",
         "showHighlights": false,
