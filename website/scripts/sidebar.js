@@ -107,7 +107,7 @@ export function recordResult(notation){
 
 function explainMove( mode ) {
     const pgn = _globals.PGN;
-    const url = "https://claude.ai/new?q=explain why move ";
+    const url = "https://claude.ai/new?q=using text only,explain why move ";
     let move = "";
     let modifier = "";
     if( mode == "best" ) {
@@ -115,7 +115,7 @@ function explainMove( mode ) {
         modifier = " is the best move after: ";
     } else {
         move = _globals.yourMove; 
-        modifier = " is aa sub-optimal move after: ";   
+        modifier = " is a sub-optimal move after: ";   
     }
     window.open( url+move+modifier+pgn, '_blank' );
 }
