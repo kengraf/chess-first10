@@ -65,10 +65,10 @@ export function openingActions() {
 		if(_globals.userCookie != null) {
 			// Set to either "Anonymous" or given_name
 			fetchJSON('/api/databaseItems');
+			return;
 		} else {
 			_globals.declaredUser = "Anonymous";
 		}
-		return;
 	}
 
 	if( showSplash  && (_globals.declaredUser == "Anonymous")) {
